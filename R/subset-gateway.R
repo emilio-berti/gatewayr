@@ -1,9 +1,12 @@
 #' @title Subset GATEWAy
 #'
 #' @export
+#' @importFrom methods is
+#' @importFrom utils data
 #'
 #' @param name String of the column used for subsetting.
 #' @param pattern String to match.
+#' @param adults.only Logical.
 #'
 #' @return a data.frame with network metrics.
 #'

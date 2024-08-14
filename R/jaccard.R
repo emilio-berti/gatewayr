@@ -1,6 +1,7 @@
 #' @title Compute species (Jaccard) similarity 
 #'
 #' @export
+#' @importFrom methods is
 #'
 #' @param df data.frame subset from GATEWAy.
 #'

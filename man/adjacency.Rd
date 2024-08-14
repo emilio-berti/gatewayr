@@ -7,9 +7,7 @@
 adjacency(df)
 }
 \arguments{
-\item{name}{String of the column used for subsetting.}
-
-\item{pattern}{String to match.}
+\item{df}{data.frame subset from GATEWAy.}
 }
 \value{
 a data.frame with network metrics.

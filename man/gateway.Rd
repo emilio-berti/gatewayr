@@ -7,7 +7,9 @@
 \format{
 \subsection{\code{gateway}}{
 
-A data frame with 222,151 rows and 46 columns.
+A data frame with 222,042 rows and 44 columns.
+Species with non-ASCII characters were removed.
+Common names were removed.
 }
 }
 \source{

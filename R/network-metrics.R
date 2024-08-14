@@ -3,6 +3,7 @@
 #' @export
 #' @importFrom igraph graph_from_adjacency_matrix similarity transitivity mean_distance motifs
 #' @importFrom stats sd
+#' @importFrom methods is
 #'
 #' @param fw matrix, adjacency matrix of the food web with resources 
 # as rows and consumers as columns.

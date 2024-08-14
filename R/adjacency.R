@@ -3,8 +3,7 @@
 #' @export
 #' @importFrom igraph graph_from_data_frame simplify degree delete_vertices as_adjacency_matrix
 #'
-#' @param name String of the column used for subsetting.
-#' @param pattern String to match.
+#' @param df data.frame subset from GATEWAy.
 #'
 #' @return a data.frame with network metrics.
 #'

@@ -10,6 +10,8 @@ subset(name, pattern, adults.only = TRUE)
 \item{name}{String of the column used for subsetting.}
 
 \item{pattern}{String to match.}
+
+\item{adults.only}{Logical.}
 }
 \value{
 a data.frame with network metrics.

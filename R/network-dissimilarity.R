@@ -1,6 +1,9 @@
 #' @title Network dissimlarities
 #'
 #' @export
+#' @importFrom methods is
+#' @importFrom stats prcomp
+#' @importFrom stats dist
 #'
 #' @param df data.frame subset from GATEWAy.
 #'
