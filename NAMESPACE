@@ -3,6 +3,7 @@
 export(adjacency)
 export(network_dissimilarity)
 export(network_metrics)
+export(network_pca)
 export(species_jaccard)
 export(subset)
 importFrom(igraph,as_adjacency_matrix)

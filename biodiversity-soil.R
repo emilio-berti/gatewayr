@@ -1,0 +1,84 @@
+---
+output: pdf_document
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+
+```{r subset}
+library(gatewayr)
+
+d <- subset("study.site", "Biodiversity Exploratory soil food webs")
+```
+
+Jaccard dissimilarity between foodwebs:
+```{r, jaccard}
+jaccard <- species_jaccard(d)
+jaccard[1:3, 1:3]
+image(jaccard, col = hcl.colors(100, "DarkMint"))
+```
+
+Network properties:
+```{r properties}
+net <- lapply(unique(d$foodweb.name), \(fw) {
+  A <- adjacency(d[d$foodweb.name == fw, ])
+    return(network_metrics(A))
+  }
+)
+net <- do.call(rbind, net)
+pc1 <- as.matrix(dist(pca$x[, 1]))
+pc1 <- as.matrix(dist(pc1))
+pc1 <- pc1[lower.tri(pc1)]
+pc2 <- as.matrix(dist(pca$x[, 2]))
+pc2 <- as.matrix(dist(pc2))
+pc2 <- pc2[lower.tri(pc2)]
+connectance <- net[, 1]
+connectance <- as.matrix(dist(connectance))
+connectance <- connectance[lower.tri(connectance)]
+basals <- net[, 10]
+basals <- as.matrix(dist(basals))
+basals <- basals[lower.tri(basals)]
+jacc <- jaccard[lower.tri(jaccard)]
+scatter.smooth(jacc, pc1)
+scatter.smooth(jacc, pc2)
+scatter.smooth(jacc, connectance)
+scatter.smooth(jacc, basals)
+```
+
+Network dissimilarity between foodwebs (only first two axes):
+```{r dissimlarity}
+network_distance <- network_dissimilarity(d, axes = 2)
+network_distance[1:3, 1:3]
+image(network_distance, col = hcl.colors(100, "Zissou 1"))
+```
+
+# Analysis of dissimilarities
+
+```{r plot}
+fit <- loess(as.vector(network_distance) ~ as.vector(jaccard))
+lm <- lm(as.vector(network_distance) ~ as.vector(jaccard))
+
+plot(
+  jaccard, network_distance,
+  pch = 21,
+  cex = .6,
+  bg = "goldenrod",
+  frame = FALSE,
+  xlab = "Species similarity (Jaccard)",
+  ylab = "Network dissimilarity (PCA distance)"
+)
+abline(lm, lw = 3, col = "grey20")
+
+summary(
+    lm(
+    scale(as.vector(network_distance)) ~ 
+    -1 + scale(as.vector(jaccard))
+  )
+)
