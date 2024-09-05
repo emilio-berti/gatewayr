@@ -2,7 +2,7 @@
 output: github_document
 ---
 
-<!-- README.md is generated from README.Rmd. Please edit that file: `devtools::build_readme()` is handy for this. -->
+<!-- README.md is generated from README.Rmd. Please edit that file `devtools::build_readme()` is handy for this. -->
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
@@ -23,9 +23,14 @@ The goal of gatewayr is to interface with the GATEWAy database and run simple an
 ## Installation
 
 You can install the development version of gatewayr like so:
-
-``` r
+```{r install}
 devtools::install_github("emilio-berti/gatewayr")
+```
+
+or by downloading the whole repo and build it yourself:
+```{r, eval=FALSE}
+R CMD build gatewayr
+R CMD INSTALL gateway_r_<version>.tar.gz
 ```
 
 ## Compute network and community metrics for a study site
@@ -57,10 +62,40 @@ net <- network_metrics(A)
 net
 ```
 
-The function `network_dissimilarity()` calls this functions for each food web in the dataset and calculate the euclidean distance between foodwebs in PCA space:
+You can get all network metrics for all foodwebs using `lapply()`:
+```{r lapply}
+net <- lapply(unique(d$foodweb.name), \(fw) {
+  A <- adjacency(d[d$foodweb.name == fw, ])
+  return(network_metrics(A))
+})
+net <- do.call(rbind, net)  # concatenate list into data.frame
+head(net)
+```
 
+PCA can help reduce the dimensionality of this space.
+`network_pca()` runs  a simple PCA on the network properties.
+A default argument `axes` can be passed to specify the number of axes to retain.
+```{r pca}
+pca <- network_pca(net, axes = 2)
+biplot(
+  pca,
+  scale = FALSE,
+  col = c("dodgerblue", "grey20"),
+  xlabs = rep("*", nrow(pca$x)),
+  cex = 1.5,
+  xlab = "PC1: 45%",
+  ylab = "PC2: 26%"
+)
+sort(abs(pca$rotation[, 1]), decreasing = TRUE)
+sort(abs(pca$rotation[, 2]), decreasing = TRUE)
+pc1 <- pca$x[, 1]
+pc2 <- pca$x[, 2]
+```
+
+The function `network_dissimilarity()` takes as input the original data.frame, runs the PCA and calculate the euclidean distance between foodwebs in PCA space.
+The argument `axes` specifies the number of PCA axes to consider (default = 2).
 ```{r dissimlarity}
-network_distance <- network_dissimilarity(d)
+network_distance <- network_dissimilarity(d, axes = 2)
 image(network_distance, col = hcl.colors(100, "Zissou 1"))
 ```
 
@@ -135,9 +170,9 @@ for (i in seq_len(n)) {
 
   with(boot, points(
     jaccard, network,
-    pch = 20,
+    pch = 21,
     cex = .6,
-    col = adjustcolor("dodgerblue3", alpha.f = .3)
+    bg = adjustcolor("dodgerblue3", alpha.f = .3)
   ))
 
   lm <- with(boot, lm(network ~ jaccard))

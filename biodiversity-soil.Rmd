@@ -1,0 +1,167 @@
+---
+output: pdf_document
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# Biodiversity Soil Germany
+
+```{r subset}
+library(gatewayr)
+
+d <- subset("study.site", "Biodiversity Exploratory soil food webs")
+
+jaccard <- species_jaccard(d)  # species similarity
+jaccard[jaccard > .8] <- NA
+
+net <- lapply(unique(d$foodweb.name), \(fw) {  # network properties
+  A <- adjacency(d[d$foodweb.name == fw, ])
+  return(network_metrics(A))
+})
+net <- do.call(rbind, net)  # concatenate into data.frame
+
+pca <- network_pca(net, axes = 2)  # PCA using first 2 axes
+biplot(
+  pca,
+  scale = FALSE,
+  col = c("orange3", "grey20"),
+  xlabs = rep("*", nrow(pca$x)),
+  cex = 1.5,
+  xlab = "PC1: 49%",
+  ylab = "PC2: 29%"
+)
+sort(abs(pca$rotation[, 1]), decreasing = TRUE)  # suggests connectance
+sort(abs(pca$rotation[, 2]), decreasing = TRUE)  # suggests sdVul
+pc1 <- pca$x[, 1]
+pc2 <- pca$x[, 2]
+
+dissimilarity_pc1 <- dist(pc1)  # distance in PC1
+dissimilarity_pc2 <- dist(pc2)  # distance in PC2
+
+scatter.smooth(
+  jaccard[lower.tri(jaccard)],
+  dissimilarity_pc1[lower.tri(dissimilarity_pc1)],  
+  pch = 21,
+  cex = 1,
+  bg = "orange3",
+  frame = FALSE,
+  xlab = "Species similarity (Jaccard)",
+  ylab = "Dissimilarity on PC1",
+  lpars = list(col = "grey20", lwd = 5, lty = 1),
+)
+scatter.smooth(
+  jaccard[lower.tri(jaccard)],
+  dissimilarity_pc2[lower.tri(dissimilarity_pc2)],  
+  pch = 21,
+  cex = 1,
+  bg = "orange3",
+  frame = FALSE,
+  xlab = "Species similarity (Jaccard)",
+  ylab = "Dissimilarity on PC2",
+  lpars = list(col = "grey20", lwd = 5, lty = 1)
+)
+
+network_distance <- network_dissimilarity(d, axes = 2)
+
+scatter.smooth(
+  jaccard[lower.tri(jaccard)],
+  network_distance[lower.tri(network_distance)],  
+  pch = 21,
+  cex = 1,
+  bg = "orange3",
+  frame = FALSE,
+  xlab = "Species similarity (Jaccard)",
+  ylab = "Network dissimilarity (PCA distance)",
+  lpars = list(col = "grey20", lwd = 5, lty = 1)
+)
+
+logit <- function(x) {
+  return( log(x / (1 - x)) )
+}
+
+m <- lm(
+  scale(as.vector(network_distance[lower.tri(jaccard)])) ~ 
+    -1 + scale(as.vector(jaccard[lower.tri(jaccard)]))
+)
+summary(m)$adj.r.squared
+anova(m)$`Pr(>F)`[1]
+coef(m)[[1]]
+```
+
+## Bootstrapping
+
+The models above have many points, however we only have 50 food webs, which is our true sample size.
+In other words, we have pseudo-replication.
+Bootstrapping is a crude way to solve this problem.
+
+```{r bootstrap}
+plot(
+  c(0, 0.55), c(0, 11),
+  cex = 0,
+  frame = FALSE,
+  xlab = "Species similarity (Jaccard)",
+  ylab = "Network dissimilarity (PCA distance)"
+)
+
+n <- 1000  # bootstrap samples
+slopes <- rep(NA, n)
+p_values <- rep(NA, n)
+for (i in seq_len(n)) {
+  # first set of food webs
+  first_set <- sample(
+    rownames(jaccard),
+    floor(nrow(jaccard) / 2)
+  )
+  # second set of food webs
+  second_set <- sample(
+    setdiff(rownames(jaccard), first_set),
+    floor(nrow(jaccard) / 2)
+  )
+  comparisons <- cbind(first_set, second_set)
+  # subset the whole dataframe to keep only 25 pairwise comparisons
+  boot <- data.frame()
+  for (j in seq_len(nrow(comparisons))) {
+    boot <- rbind(
+      boot,
+      data.frame(
+        jaccard = jaccard[comparisons[j, 1], comparisons[j, 2]],
+        network = network_distance[comparisons[j, 1], comparisons[j, 2]]
+      )
+    )
+  }
+
+  with(boot, points(
+    jaccard, network,
+    pch = 21,
+    cex = .6,
+    bg = adjustcolor("orange3", alpha.f = .3)
+  ))
+
+  lm <- with(boot, lm(network ~ jaccard))
+  abline(lm, lw = 2, col = adjustcolor("grey20", alpha.f = .2))
+  lm <- with(boot, lm(scale(network) ~ -1 + scale(jaccard)))
+  slopes[i] <- coef(lm)
+  p_values[i] <- anova(lm)$`Pr(>F)`[1]
+}
+
+summary(slopes)
+hist(
+  slopes,
+  breaks = seq(
+    floor(min(slopes) * 10) / 10,
+    ceiling(max(slopes) * 10) / 10,
+    by = .1
+  ),
+  main = "", xlab = "Slopes",
+  col = "orange3"
+)
+```
+
+
