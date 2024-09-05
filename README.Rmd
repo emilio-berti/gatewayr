@@ -2,8 +2,7 @@
 output: github_document
 ---
 
-<!-- README.md is generated from README.Rmd. Please edit that file -->
-<!-- You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. -->
+<!-- README.md is generated from README.Rmd. Please edit that file: `devtools::build_readme()` is handy for this. -->
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
@@ -100,19 +99,17 @@ Bootstrapping is a crude way to solve this problem.
 
 ```{r bootstrap}
 plot(
-  jaccard, network_distance,
-  pch = 20,
-  cex = .6,
-  col = adjustcolor("dodgerblue3"),
+  c(0, 0.55), c(0, 11),
+  cex = 0,
   frame = FALSE,
   xlab = "Species similarity (Jaccard)",
   ylab = "Network dissimilarity (PCA distance)"
 )
 
-n <- 100 #bootstrap samples
+n <- 1000  # bootstrap samples
 slopes <- rep(NA, n)
 p_values <- rep(NA, n)
-for (i in seq_len(n)) { 
+for (i in seq_len(n)) {
   # first set of food webs
   first_set <- sample(
     rownames(jaccard),
@@ -123,19 +120,35 @@ for (i in seq_len(n)) {
     setdiff(rownames(jaccard), first_set),
     floor(nrow(jaccard) / 2)
   )
+  comparisons <- cbind(first_set, second_set)
   # subset the whole dataframe to keep only 25 pairwise comparisons
-  boot <- data.frame(
-    jaccard = as.vector(jaccard[first_set, second_set]),
-    network = as.vector(network_distance[first_set, second_set])
-  )
+  boot <- data.frame()
+  for (j in seq_len(nrow(comparisons))) {
+    boot <- rbind(
+      boot,
+      data.frame(
+        jaccard = jaccard[comparisons[j, 1], comparisons[j, 2]],
+        network = network_distance[comparisons[j, 1], comparisons[j, 2]]
+      )
+    )
+  }
+
+  with(boot, points(
+    jaccard, network,
+    pch = 20,
+    cex = .6,
+    col = adjustcolor("dodgerblue3", alpha.f = .3)
+  ))
+
   lm <- with(boot, lm(network ~ jaccard))
-  abline(lm, lw = 2, col = adjustcolor("grey20", alpha.f = .3))
+  abline(lm, lw = 2, col = adjustcolor("grey20", alpha.f = .2))
   lm <- with(boot, lm(scale(network) ~ -1 + scale(jaccard)))
   slopes[i] <- coef(lm)
   p_values[i] <- anova(lm)$`Pr(>F)`[1]
 }
 
 summary(slopes)
+hist(slopes, breaks = 10, main = "", xlab = "Slopes")
 ```
 
 

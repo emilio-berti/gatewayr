@@ -23,6 +23,14 @@ subset <- function(name, pattern, adults.only = TRUE) {
   data("gateway", envir = environment())
   matches <- with(gateway, eval(parse(text = name)) == pattern)
   message(" - ", sum(matches), " records found.")
+  if (sum(matches) == 0) {
+    message(
+      " - Available options are:\n   ",
+      paste(with(gateway, unique(eval(parse(text = name)))), collapse = "\n   ")
+    )
+    return(NULL)
+  }
+
   ans <- gateway[matches, ]
 
   # remove non-adults -----------
