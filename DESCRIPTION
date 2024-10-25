@@ -14,5 +14,8 @@ Depends:
 Imports:
     igraph,
     methods,
-    utils
+    utils,
+    httr2,
+    tibble,
+    dplyr
 LazyData: true
