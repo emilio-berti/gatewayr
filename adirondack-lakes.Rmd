@@ -18,6 +18,7 @@ library(gatewayr)
 
 d <- subset("study.site", "Adirondack lakes")
 
+# species similarity ----------------
 jaccard <- species_jaccard(d)  # species similarity
 
 net <- lapply(unique(d$foodweb.name), \(fw) {  # network properties
@@ -27,6 +28,7 @@ net <- lapply(unique(d$foodweb.name), \(fw) {  # network properties
 net <- do.call(rbind, net)  # concatenate into data.frame
 
 pca <- network_pca(net, axes = 2)  # PCA using first 2 axes
+pdf("~/Pictures/lakes-biplot.pdf", 5, 5)
 biplot(
   pca,
   scale = FALSE,
@@ -36,14 +38,17 @@ biplot(
   xlab = "PC1: 45%",
   ylab = "PC2: 26%"
 )
+dev.off()
 sort(abs(pca$rotation[, 1]), decreasing = TRUE)  # suggests connectance
 sort(abs(pca$rotation[, 2]), decreasing = TRUE)  # suggests frB
+
+# PCs ---------------
 pc1 <- pca$x[, 1]
 pc2 <- pca$x[, 2]
-
 dissimilarity_pc1 <- dist(pc1)  # distance in PC1
 dissimilarity_pc2 <- dist(pc2)  # distance in PC2
-
+pdf("~/Pictures/lakes-pca.pdf", 8, 4)
+par(mfrow = c(1, 2), mar = c(4, 4, 1, 1))
 scatter.smooth(
   jaccard[lower.tri(jaccard)],
   dissimilarity_pc1[lower.tri(dissimilarity_pc1)],  
@@ -66,9 +71,43 @@ scatter.smooth(
   ylab = "Dissimilarity on PC2",
   lpars = list(col = "grey20", lwd = 5, lty = 1)
 )
+dev.off()
 
+# connectance ----------------
+pdf("~/Pictures/lakes-metrics.pdf", 8, 4)
+par(mfrow = c(1, 2), mar = c(4, 4, 1, 1))
+connectance <- as.matrix(dist(net[["connectance"]]))
+scatter.smooth(
+  jaccard[lower.tri(jaccard)],
+  connectance[lower.tri(connectance)],  
+  pch = 21,
+  cex = 1,
+  bg = "dodgerblue",
+  frame = FALSE,
+  xlab = "Species similarity (Jaccard)",
+  ylab = "Difference in connectance",
+  lpars = list(col = "grey20", lwd = 5, lty = 1)
+)
+
+# frB -------------
+frB <- as.matrix(dist(net[["frB"]]))
+scatter.smooth(
+  jaccard[lower.tri(jaccard)],
+  frB[lower.tri(frB)],  
+  pch = 21,
+  cex = 1,
+  bg = "dodgerblue",
+  frame = FALSE,
+  xlab = "Species similarity (Jaccard)",
+  ylab = "Difference in % basal species",
+  lpars = list(col = "grey20", lwd = 5, lty = 1)
+)
+dev.off()
+
+# network dissimlarity -------
 network_distance <- network_dissimilarity(d, axes = 2)
-
+pdf("~/Pictures/lakes-dissimilarities.pdf", 4, 4)
+par(mar = c(4, 4, 1, 1))
 scatter.smooth(
   jaccard[lower.tri(jaccard)],
   network_distance[lower.tri(network_distance)],  
@@ -80,10 +119,7 @@ scatter.smooth(
   ylab = "Network dissimilarity (PCA distance)",
   lpars = list(col = "grey20", lwd = 5, lty = 1)
 )
-
-logit <- function(x) {
-  return( log(x / (1 - x)) )
-}
+dev.off()
 
 m <- lm(
   scale(as.vector(network_distance[lower.tri(jaccard)])) ~ 
@@ -101,6 +137,8 @@ In other words, we have pseudo-replication.
 Bootstrapping is a crude way to solve this problem.
 
 ```{r bootstrap}
+pdf("~/Pictures/lakes-bootstrap.pdf", 4, 4)
+par(mar = c(4, 4, 1, 1))
 plot(
   c(0, 0.55), c(0, 11),
   cex = 0,
@@ -138,19 +176,22 @@ for (i in seq_len(n)) {
 
   with(boot, points(
     jaccard, network,
-    pch = 20,
+    pch = 21,
     cex = .6,
-    col = adjustcolor("dodgerblue3", alpha.f = .3)
+    bg = adjustcolor("dodgerblue3", alpha.f = .3)
   ))
 
   lm <- with(boot, lm(network ~ jaccard))
-  abline(lm, lw = 2, col = adjustcolor("grey20", alpha.f = .2))
+  abline(lm, lw = 2, col = adjustcolor("grey20", alpha.f = .1))
   lm <- with(boot, lm(scale(network) ~ -1 + scale(jaccard)))
   slopes[i] <- coef(lm)
   p_values[i] <- anova(lm)$`Pr(>F)`[1]
 }
+dev.off()
 
 summary(slopes)
+pdf("~/Pictures/lakes-slopes.pdf", 4, 4)
+par(mar = c(4, 4, 1, 1))
 hist(
   slopes,
   breaks = seq(
@@ -161,6 +202,5 @@ hist(
   main = "", xlab = "Slopes",
   col = "dodgerblue3"
 )
+dev.off()
 ```
-
-

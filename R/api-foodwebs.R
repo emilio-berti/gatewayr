@@ -1,9 +1,7 @@
-#' @title Download All Food Webs
+#' @title Create API URL for Food Webs
 #'
 #' @export
 #' @importFrom methods is
-#' @importFrom httr2 request req_perform resp_body_json
-#' @importFrom dplyr bind_rows
 #'
 #' @param ecosystemType Character of ecosystem type.
 #' @param xmin Nnumeric value of minimum longitude.
@@ -15,7 +13,7 @@
 #'
 #' @details Arguments are used to filter the food webs. When
 #' no parameters are provided, all food webs are returned.
-gateway_foodwebs <- function(
+api_foodwebs <- function(
   ecosystemType = NULL,
   xmin = NULL,
   xmax = NULL,
@@ -50,6 +48,35 @@ gateway_foodwebs <- function(
   if (!is.null(ymin)) api <- paste0(api, "&ymin=", ymin)
   if (!is.null(xmax)) api <- paste0(api, "&xmax=", xmax)
   if (!is.null(ymax)) api <- paste0(api, "&ymax=", ymax)
+  return(api)
+}
+
+
+#' @title Download Food Webs
+#'
+#' @export
+#' @importFrom methods is
+#' @importFrom httr2 request req_perform resp_body_json
+#' @importFrom dplyr bind_rows
+#'
+#' @param ecosystemType Character of ecosystem type.
+#' @param xmin Nnumeric value of minimum longitude.
+#' @param xmax Nnumeric value of maximum longitude.
+#' @param ymin Nnumeric value of minimum latitude.
+#' @param ymax Nnumeric value of maximum latitude.
+#'
+#' @return Data frame with food web data.
+#'
+#' @details Arguments are used to filter the food webs. When
+#' no parameters are provided, all food webs are returned.
+gateway_foodwebs <- function(
+  ecosystemType = NULL,
+  xmin = NULL,
+  xmax = NULL,
+  ymin = NULL,
+  ymax = NULL
+) {
+  api <- api_foodwebs(ecosystemType, xmin, ymin, xmax, ymax)
   req <- request(api)
   resp <- req_perform(req)
   json <- resp |> resp_body_json()
