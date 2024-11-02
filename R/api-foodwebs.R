@@ -1,13 +1,13 @@
 #' @title Create API URL for Food Webs
 #'
 #' @export
-#' @importFrom methods is
+#' @importFrom methods is hasArg
 #'
 #' @param ecosystemType Character of ecosystem type.
-#' @param xmin Nnumeric value of minimum longitude.
-#' @param xmax Nnumeric value of maximum longitude.
-#' @param ymin Nnumeric value of minimum latitude.
-#' @param ymax Nnumeric value of maximum latitude.
+#' @param xmin Numeric value of minimum longitude.
+#' @param xmax Numeric value of maximum longitude.
+#' @param ymin Numeric value of minimum latitude.
+#' @param ymax Numeric value of maximum latitude.
 #'
 #' @return Data frame with food web data.
 #'
@@ -20,7 +20,7 @@ api_foodwebs <- function(
   ymin = NULL,
   ymax = NULL
 ) {
-  if (hasArg(ecosystemType)) {
+  if (!is.null(ecosystemType)) {
     stopifnot(is(ecosystemType, "character"))
     stopifnot(ecosystemType %in% c(
       "terrestrial aboveground", 
@@ -31,17 +31,20 @@ api_foodwebs <- function(
     ))
   }
 
-  api <- "http://localhost:8000/gateway/api/foodwebs"
+  api <- getOption("gateway_api")
+  stopifnot(!is.null(api))
+  api <- paste0(api, "foodwebs/")
+
   if (any(
-    hasArg(ecosystemType),
-    hasArg(xmin),
-    hasArg(xmax),
-    hasArg(ymin),
-    hasArg(ymax)
+    !is.null(ecosystemType),
+    !is.null(xmin),
+    !is.null(xmax),
+    !is.null(ymin),
+    !is.null(ymax)
   )) {
     api <- paste0(api, "?")
   }
-  if (hasArg(ecosystemType)) {
+  if (!is.null(ecosystemType)) {
     api <- paste0(api, "ecosystem=", ecosystemType)
   }
   if (!is.null(xmin)) api <- paste0(api, "&xmin=", xmin)
@@ -60,10 +63,10 @@ api_foodwebs <- function(
 #' @importFrom dplyr bind_rows
 #'
 #' @param ecosystemType Character of ecosystem type.
-#' @param xmin Nnumeric value of minimum longitude.
-#' @param xmax Nnumeric value of maximum longitude.
-#' @param ymin Nnumeric value of minimum latitude.
-#' @param ymax Nnumeric value of maximum latitude.
+#' @param xmin Numeric value of minimum longitude.
+#' @param xmax Numeric value of maximum longitude.
+#' @param ymin Numeric value of minimum latitude.
+#' @param ymax Numeric value of maximum latitude.
 #'
 #' @return Data frame with food web data.
 #'

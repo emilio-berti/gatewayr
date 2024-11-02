@@ -4,6 +4,7 @@
 #' @importFrom igraph graph_from_adjacency_matrix similarity transitivity mean_distance motifs
 #' @importFrom stats sd
 #' @importFrom methods is
+#' @importFrom tibble tibble
 #'
 #' @param fw matrix, adjacency matrix of the food web with resources 
 # as rows and consumers as columns.
@@ -74,7 +75,7 @@ network_metrics <- function(fw) {
   PercentMotifsFrame <- as.data.frame(t(PercentMotifs))
 
   # output of function
-  ans <- data.frame(
+  ans <- tibble(
     connectance = C,
     clust = clust,
     meanSim = MMSim,

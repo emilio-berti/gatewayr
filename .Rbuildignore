@@ -2,3 +2,5 @@
 ^README\.Rmd$
 ^\.Rmd$
 .github/
+^doc$
+^Meta$

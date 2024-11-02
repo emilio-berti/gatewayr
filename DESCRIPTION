@@ -19,3 +19,7 @@ Imports:
     tibble,
     dplyr
 LazyData: true
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
