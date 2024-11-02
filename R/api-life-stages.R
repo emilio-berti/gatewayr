@@ -13,6 +13,6 @@ available_life_stages <- function() {
 	req <- request(api)
   resp <- req_perform(req)
   json <- resp |> resp_body_json()
-  ans <- json |> bind_rows() |> pull(lifeStage)
+  ans <- json |> bind_rows() |> pull("lifeStage")
   return(ans)
 }

@@ -1,6 +1,6 @@
 Package: gatewayr
 Title: What the Package Does (One Line, Title Case)
-Version: 0.0.1
+Version: 0.1
 Authors@R: 
     person("Emilio", "Berti", , "emilio.berti@idiv.de", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-9286-011X"))
@@ -14,7 +14,6 @@ Depends:
 Imports:
     igraph,
     methods,
-    utils,
     httr2,
     tibble,
     dplyr

@@ -6,6 +6,11 @@
 \usage{
 gateway_taxa(taxonRank = NULL, taxonomicStatus = NULL)
 }
+\arguments{
+\item{taxonRank}{Character.}
+
+\item{taxonomicStatus}{Character.}
+}
 \value{
 Data frame with food web data.
 }

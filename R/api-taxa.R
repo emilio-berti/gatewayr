@@ -39,6 +39,9 @@ api_taxa <- function(
 #' @importFrom httr2 request req_perform resp_body_json
 #' @importFrom dplyr bind_rows
 #'
+#' @param taxonRank Character.
+#' @param taxonomicStatus Character.
+#'
 #' @return Data frame with food web data.
 #'
 #' @details Arguments are used to filter the food webs. When
