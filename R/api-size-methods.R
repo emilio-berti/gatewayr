@@ -1,14 +1,14 @@
-#' @title GATEWAy Life Stages
+#' @title GATEWAy Size Methods
 #'
 #' @export
 #' @importFrom httr2 request req_perform resp_body_json
 #' @importFrom dplyr bind_rows
 #'
 #' @return Character vector.
-gateway_life_stages <- function() {
+gateway_size_methods <- function() {
 	api <- getOption("gateway_api")
 	stopifnot(!is.null(api))
-	api <- paste0(api, "lifeStages")
+	api <- paste0(api, "sizeMethods")
 	req <- request(api)
   resp <- req_perform(req)
   json <- resp |> resp_body_json()

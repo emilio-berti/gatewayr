@@ -37,6 +37,7 @@ api_taxa <- function(params = NULL) {
 #' @importFrom httr2 request req_perform resp_body_json
 #' @importFrom dplyr bind_rows
 #'
+#' @param taxonID Integer of Taxon ID.
 #' @param taxonRank Character.
 #' @param taxonomicStatus Character.
 #'
@@ -45,11 +46,20 @@ api_taxa <- function(params = NULL) {
 #' @details Arguments are used to filter the food webs. When
 #' no parameters are provided, all food webs are returned.
 gateway_taxa <- function(
+  taxonID = NULL,
   taxonRank = NULL,
   taxonomicStatus = NULL
 ) {
-  params <- list(taxonRank, taxonomicStatus)
-  names(params) <- c("taxonRank", "taxonomicStatus")
+  if (!is.null(taxonID) & any(sapply(list(taxonRank, taxonomicStatus), \(x) !is.null(x)))) {
+    warning("When 'taxonID' is provided, all other arguments are ignored.")
+  }
+
+  if (length(taxonID) > 1) {
+    taxonID <- paste(taxonID, collapse = ",")
+  }
+  
+  params <- list(taxonRank, taxonomicStatus, taxonID)
+  names(params) <- c("taxonRank", "taxonomicStatus", "taxonID")
   params <- params[!sapply(params, is.null) & nzchar(as.character(params))]
   api <- api_taxa(params)
   req <- request(api)

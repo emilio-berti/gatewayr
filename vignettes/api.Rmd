@@ -21,12 +21,37 @@ library(gatewayr)
 # Access the GATEWAy API
 The _gatewayr_ package is designed to interface with the [GATEWAy API](http://localhost:8000/gateway/api/).
 This is achieved using the API REST framework and the _httr2_ R package.
-There are **n** access points to the API implmeneted in _gatewayr_ (Table **x**).
+There are **n** access points to the API implmeneted in _gatewayr_ (Table 1).
+
+<p style="text-align: center; font-weight: bold;">Table 1: Endpoints of the GAYEWAy API.</p>
+| **Endpoint** | **filters** | **function** |
+| ------------ | ----------- | ------------ |
+|`/gateway/api/foodwebs` |   | query foodwebs |
+| | `?foodwebID=` | filter by _foodwebID_|
+| | `?ecosystemType=` | filter by _ecosystemType_|
+| | `?xmin=` | filter by _decimalLongitude_|
+| | `?xmax=` | filter by _decimalLongitude_|
+| | `?ymin=` | filter by _decimalLatitude_|
+| | `?ymax=` | filter by _decimalLatitude_|
+|`/gateway/api/taxa` | | query taxa|
+| | `?taxonID=` | filter by _taxonID_|
+| | `?taxonRank=` | filter by _taxonRank_|
+| | `?taxonomicStatus=` | filter by _taxonomicStatus_|
+|`/gateway/api/communities` | | query communities |
+| | `?foodwebID=` | filter by _foodwebID_ |
+
+All endpoints that filter not based on IDs require one argument.
+Endpoints filtering on IDs can take more than one argument; in that case, arguments are separated by a `,` (coma).
+As example, `/gateway/api/foodwebs?ecosystemType=lakes` returns all lake food webs, and `/gateway/api/foodwebs?foodwebID=1,5,19` returns food webs 1, 5, and 9.
 
 ## Access Food Web metadata
 The `gateway_foodwebs()` accesses the food web metadata, such as the name of the food web, its ecosystem type and geographic coordinates.
 ```{r foodwebs}
 gateway_foodwebs()
+```
+Food webs can be filtered based on their _foodwebID_ value.
+```{r foodwebs-filtering-0}
+gateway_foodwebs(foodwebID = c(1, 9, 125))
 ```
 The optional arguments _ecosystemType_ and _xmin_, _xmax_, _ymin_, _ymax_ can be used to filter the database to retain only the food webs from one ecosystem type or within a bounding box.
 ```{r foodwebs-filtering-1}

@@ -4,9 +4,11 @@
 \alias{gateway_taxa}
 \title{Download Taxa}
 \usage{
-gateway_taxa(taxonRank = NULL, taxonomicStatus = NULL)
+gateway_taxa(taxonID = NULL, taxonRank = NULL, taxonomicStatus = NULL)
 }
 \arguments{
+\item{taxonID}{Integer of Taxon ID.}
+
 \item{taxonRank}{Character.}
 
 \item{taxonomicStatus}{Character.}

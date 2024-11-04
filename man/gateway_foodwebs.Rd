@@ -5,6 +5,7 @@
 \title{Download Food Webs}
 \usage{
 gateway_foodwebs(
+  foodwebID = NULL,
   ecosystemType = NULL,
   xmin = NULL,
   xmax = NULL,
@@ -13,6 +14,8 @@ gateway_foodwebs(
 )
 }
 \arguments{
+\item{foodwebID}{Integer of Food Web ID.}
+
 \item{ecosystemType}{Character of ecosystem type.}
 
 \item{xmin}{Numeric value of minimum longitude.}

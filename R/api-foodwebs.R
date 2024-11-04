@@ -47,6 +47,7 @@ api_foodwebs <- function(params = NULL) {
 #' @importFrom httr2 request req_perform resp_body_json
 #' @importFrom dplyr bind_rows
 #'
+#' @param foodwebID Integer of Food Web ID.
 #' @param ecosystemType Character of ecosystem type.
 #' @param xmin Numeric value of minimum longitude.
 #' @param xmax Numeric value of maximum longitude.
@@ -58,14 +59,23 @@ api_foodwebs <- function(params = NULL) {
 #' @details Arguments are used to filter the food webs. When
 #' no parameters are provided, all food webs are returned.
 gateway_foodwebs <- function(
+  foodwebID = NULL,
   ecosystemType = NULL,
   xmin = NULL,
   xmax = NULL,
   ymin = NULL,
   ymax = NULL
 ) {
-  params <- list(ecosystemType, xmin, ymin, xmax, ymax)
-  names(params) <- c("ecosystemType", "xmin", "ymin", "xmax", "ymax")
+  if (!is.null(foodwebID) & any(sapply(list(ecosystemType, xmin, xmax, ymin, ymax), \(x) !is.null(x)))) {
+    warning("When 'foodwebID' is provided, all other arguments are ignored.")
+  }
+
+  if (length(foodwebID) > 1) {
+    foodwebID <- paste(foodwebID, collapse = ",")
+  }
+  
+  params <- list(foodwebID, ecosystemType, xmin, ymin, xmax, ymax)
+  names(params) <- c("foodwebID", "ecosystemType", "xmin", "ymin", "xmax", "ymax")
   params <- params[!sapply(params, is.null) & nzchar(as.character(params))]
   api <- api_foodwebs(params)
   req <- request(api)
