@@ -4,12 +4,10 @@
 \alias{api_taxa}
 \title{Create API URL for Taxa}
 \usage{
-api_taxa(taxonRank = NULL, taxonomicStatus = NULL)
+api_taxa(params = NULL)
 }
 \arguments{
-\item{taxonRank}{Character.}
-
-\item{taxonomicStatus}{Character.}
+\item{params}{list of filtering parameters.}
 }
 \value{
 Data frame with taxon data.

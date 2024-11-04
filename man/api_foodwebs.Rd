@@ -4,24 +4,10 @@
 \alias{api_foodwebs}
 \title{Create API URL for Food Webs}
 \usage{
-api_foodwebs(
-  ecosystemType = NULL,
-  xmin = NULL,
-  xmax = NULL,
-  ymin = NULL,
-  ymax = NULL
-)
+api_foodwebs(params = NULL)
 }
 \arguments{
-\item{ecosystemType}{Character of ecosystem type.}
-
-\item{xmin}{Numeric value of minimum longitude.}
-
-\item{xmax}{Numeric value of maximum longitude.}
-
-\item{ymin}{Numeric value of minimum latitude.}
-
-\item{ymax}{Numeric value of maximum latitude.}
+\item{params}{list of filtering parameters.}
 }
 \value{
 Data frame with food web data.

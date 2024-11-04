@@ -1,28 +1,20 @@
 #' @title Create API URL for Food Webs
 #'
 #' @export
-#' @importFrom methods is hasArg
+#' @importFrom methods is
+#' @importFrom utils URLencode
 #'
-#' @param ecosystemType Character of ecosystem type.
-#' @param xmin Numeric value of minimum longitude.
-#' @param xmax Numeric value of maximum longitude.
-#' @param ymin Numeric value of minimum latitude.
-#' @param ymax Numeric value of maximum latitude.
+#' @param params list of filtering parameters.
 #'
 #' @return Data frame with food web data.
 #'
 #' @details Arguments are used to filter the food webs. When
 #' no parameters are provided, all food webs are returned.
-api_foodwebs <- function(
-  ecosystemType = NULL,
-  xmin = NULL,
-  xmax = NULL,
-  ymin = NULL,
-  ymax = NULL
-) {
-  if (!is.null(ecosystemType)) {
-    stopifnot(is(ecosystemType, "character"))
-    stopifnot(ecosystemType %in% c(
+api_foodwebs <- function(params = NULL) {
+  stopifnot(is(params, "list") || is.null(params))
+  if (!is.null(params[["ecosystemType"]])) {
+    stopifnot(is(params[["ecosystemType"]], "character"))
+    stopifnot(params[["ecosystemType"]] %in% c(
       "terrestrial aboveground", 
       "lakes",
       "marine",
@@ -32,25 +24,18 @@ api_foodwebs <- function(
   }
 
   api <- getOption("gateway_api")
-  stopifnot(!is.null(api))
-  api <- paste0(api, "foodwebs/")
+  if (is.null(api)) stop("API URL is empty, contact the package developer.")
+  api <- paste0(api, "foodwebs")
 
-  if (any(
-    !is.null(ecosystemType),
-    !is.null(xmin),
-    !is.null(xmax),
-    !is.null(ymin),
-    !is.null(ymax)
-  )) {
-    api <- paste0(api, "?")
+  if (length(params) >= 1) {
+    query_string <- paste(
+      sapply(names(params), function(key) {
+        paste0(URLencode(key), "=", URLencode(as.character(params[[key]])))
+      }), collapse = "&"
+    )
+    api <- paste(api, query_string, sep = "?")
   }
-  if (!is.null(ecosystemType)) {
-    api <- paste0(api, "ecosystem=", ecosystemType)
-  }
-  if (!is.null(xmin)) api <- paste0(api, "&xmin=", xmin)
-  if (!is.null(ymin)) api <- paste0(api, "&ymin=", ymin)
-  if (!is.null(xmax)) api <- paste0(api, "&xmax=", xmax)
-  if (!is.null(ymax)) api <- paste0(api, "&ymax=", ymax)
+
   return(api)
 }
 
@@ -79,7 +64,10 @@ gateway_foodwebs <- function(
   ymin = NULL,
   ymax = NULL
 ) {
-  api <- api_foodwebs(ecosystemType, xmin, ymin, xmax, ymax)
+  params <- list(ecosystemType, xmin, ymin, xmax, ymax)
+  names(params) <- c("ecosystemType", "xmin", "ymin", "xmax", "ymax")
+  params <- params[!sapply(params, is.null) & nzchar(as.character(params))]
+  api <- api_foodwebs(params)
   req <- request(api)
   resp <- req_perform(req)
   json <- resp |> resp_body_json()

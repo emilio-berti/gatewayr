@@ -18,30 +18,32 @@ knitr::opts_chunk$set(
 library(gatewayr)
 ```
 
-# Access Food Web metadata
-The `gateway_foodwebs()` accesses the food web metadata:
-  
-  - Name
-  - Ecosystem type
-  - GPS coordinates
-  - Altitude & depth
-  - Sampling time
+# Access the GATEWAy API
+The _gatewayr_ package is designed to interface with the [GATEWAy API](http://localhost:8000/gateway/api/).
+This is achieved using the API REST framework and the _httr2_ R package.
+There are **n** access points to the API implmeneted in _gatewayr_ (Table **x**).
 
+## Access Food Web metadata
+The `gateway_foodwebs()` accesses the food web metadata, such as the name of the food web, its ecosystem type and geographic coordinates.
 ```{r foodwebs}
 gateway_foodwebs()
 ```
 The optional arguments _ecosystemType_ and _xmin_, _xmax_, _ymin_, _ymax_ can be used to filter the database to retain only the food webs from one ecosystem type or within a bounding box.
-```{r foodwebs-filtering}
+```{r foodwebs-filtering-1}
 gateway_foodwebs(ecosystemType = "lakes")
+```
+If some, but not all vertices of the bounding box are provided, the others will be set to not constrain the filtering.
+This allows to specify, for instance, minimum longitude only.
+```{r foodwebs-filtering-2}
 gateway_foodwebs(ecosystemType = "lakes", xmin = 5)
 ```
 
-# Access Taxon List
-The `gateway_taxa()` accesses the taxon information:
+## Access Taxon List
+The `gateway_taxa()` accesses the list of all taxa in the GATEWAy database.
 ```{r taxa}
 gateway_taxa()
 ```
-The optional arguments _taxonRank_ and _taxonomicStatus_ can be used to retain only taxa of a specific rank (e.g., _species_ or _family_) or taxonomic status (e.g., _accepted_ or _synonym_):
+The optional arguments _taxonRank_ and _taxonomicStatus_ can be used to retain only taxa of a specific rank (e.g., _species_ or _family_) or taxonomic status (e.g., _accepted_ or _synonym_),
 ```{ taxa-filtering}
 gateway_taxa(taxonRank = "species")
 gateway_taxa(taxonRank = "species", taxonomicStatus = "accepted")
