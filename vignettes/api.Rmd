@@ -39,6 +39,13 @@ There are **n** access points to the API implmeneted in _gatewayr_ (Table 1).
 | | `?taxonomicStatus=` | filter by _taxonomicStatus_|
 |`/gateway/api/communities` | | query communities |
 | | `?foodwebID=` | filter by _foodwebID_ |
+|`/gateway/api/lifeStages` | | list all life stages |
+|`/gateway/api/movementTypes` | | list all life stages |
+|`/gateway/api/metabolicTypes` | | list all metabolic types |
+|`/gateway/api/sizeMethods` | | list all body size measurement methods |
+|`/gateway/api/references` | | list all measurement references |
+
+
 
 All endpoints that filter not based on IDs require one argument.
 Endpoints filtering on IDs can take more than one argument; in that case, arguments are separated by a `,` (coma).
