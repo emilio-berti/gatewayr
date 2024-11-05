@@ -4,10 +4,16 @@
 \alias{gateway_communities}
 \title{Download Food Webs}
 \usage{
-gateway_communities(foodwebID = NULL)
+gateway_communities(
+  foodwebID = NULL,
+  columns = c("foodwebName", "acceptedTaxonName", "lifeStage", "meanMass", "meanLength",
+    "biomass")
+)
 }
 \arguments{
 \item{foodwebID}{Numeric value of Food Web ID.}
+
+\item{columns}{Character vector of the columns to return.}
 }
 \value{
 Data frame with food web data.

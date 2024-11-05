@@ -29,41 +29,22 @@ api_communities <- function(params = NULL) {
   return(api)
 }
 
-
-#' @title Download Food Webs
+#' @title Join Raw Community Table with other Tables
 #'
 #' @export
 #' @importFrom methods is
 #' @importFrom httr2 request req_perform resp_body_json
-#' @importFrom dplyr bind_rows pull select left_join relocate contains
+#' @importFrom dplyr pull select left_join relocate contains
 #'
-#' @param foodwebID Numeric value of Food Web ID.
+#' @param df Table with raw community data.
 #'
-#' @return Data frame with food web data.
-#'
-#' @details Arguments are used to filter the communities. When
-#' no parameters are provided, all communities are returned..
-gateway_communities <- function(foodwebID = NULL) {
-  if (length(foodwebID) > 1) {
-    foodwebID <- paste(foodwebID, collapse = ",")
-  } else if (length(foodwebID) == 0) {
-    stop("You need to provide at least one 'foodwebID'")
-  }
-  params <- list(foodwebID)
-  names(params) <- c("foodwebID")
-  params <- params[!sapply(params, is.null) & nzchar(as.character(params))]
-  api <- api_communities(params)
-  req <- request(api)
-  resp <- tryCatch(
-    req_perform(req),
-    error = function(e) {
-      stop(conditionMessage(e), " Try passing fewer IDs.")
-  })  
-  json <- resp |> resp_body_json()
-  ans <- json |> bind_rows()
+#' @return Data frame with community data.
+.join_communities <- function(df) {
+  stopifnot(is(df, "data.frame"))
 
-  # retrieve food web info
-  ans <- ans |> 
+ # retrieve food web info
+ foodwebID <- df |> pull(foodwebID) |> unique()
+  ans <- df |> 
     left_join(
       gateway_foodwebs(foodwebID = paste(foodwebID, collapse = ",")), 
       by = "foodwebID"
@@ -104,6 +85,51 @@ gateway_communities <- function(foodwebID = NULL) {
   ans <- ans |> 
     relocate(contains("Mass"), .after = "lifeStage") |> 
     relocate(contains("Length"), .after = "meanMass")
+
+  return(ans)
+}
+
+#' @title Download Food Webs
+#'
+#' @export
+#' @importFrom methods is
+#' @importFrom httr2 request req_perform resp_body_json
+#' @importFrom dplyr bind_rows
+#' 
+#' @param foodwebID Numeric value of Food Web ID.
+#' @param columns Character vector of the columns to return.
+#'
+#' @return Data frame with food web data.
+#'
+#' @details Arguments are used to filter the communities. When
+#' no parameters are provided, all communities are returned..
+gateway_communities <- function(
+  foodwebID = NULL,
+  columns = c(
+    "foodwebName", "acceptedTaxonName",
+    "lifeStage", "meanMass", "meanLength", "biomass"
+  )
+) {
+  if (length(foodwebID) > 1) {
+    foodwebID <- paste(foodwebID, collapse = ",")
+  } else if (length(foodwebID) == 0) {
+    stop("You need to provide at least one 'foodwebID'")
+  }
+  params <- list(foodwebID)
+  names(params) <- c("foodwebID")
+  params <- params[!sapply(params, is.null) & nzchar(as.character(params))]
+  api <- api_communities(params)
+  req <- request(api)
+  resp <- tryCatch(
+    req_perform(req),
+    error = function(e) {
+      stop(conditionMessage(e), " Try passing fewer IDs.")
+  })  
+  json <- resp |> resp_body_json()
+  ans <- json |> bind_rows()
+
+  ans <- .join_communities(ans)
+  ans <- ans |> select(any_of(columns))
 
   return(ans)
 }
