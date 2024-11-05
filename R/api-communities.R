@@ -11,7 +11,7 @@
 #' @details Arguments are used to filter the communities. When
 #' no parameters are provided, all communities are returned.
 api_communities <- function(params = NULL) {
-  stopifnot(is(params, "list") || is.null(params))
+  stopifnot(is(params, "list"))
 
   api <- getOption("gateway_api")
   if (is.null(api)) stop("API URL is empty, contact the package developer.")
@@ -46,13 +46,19 @@ api_communities <- function(params = NULL) {
 gateway_communities <- function(foodwebID = NULL) {
   if (length(foodwebID) > 1) {
     foodwebID <- paste(foodwebID, collapse = ",")
+  } else if (length(foodwebID) == 0) {
+    stop("You need to provide at least one 'foodwebID'")
   }
   params <- list(foodwebID)
   names(params) <- c("foodwebID")
   params <- params[!sapply(params, is.null) & nzchar(as.character(params))]
   api <- api_communities(params)
   req <- request(api)
-  resp <- req_perform(req)
+  resp <- tryCatch(
+    req_perform(req),
+    error = function(e) {
+      stop(conditionMessage(e), " Try passing fewer IDs.")
+  })  
   json <- resp |> resp_body_json()
   ans <- json |> bind_rows()
 

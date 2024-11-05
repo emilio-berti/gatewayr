@@ -12,6 +12,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+options(tibble.print_max = 4, tibble.print_min = 4)
 ```
 
 ```{r setup}
@@ -40,7 +41,7 @@ There are **n** access points to the API implmeneted in _gatewayr_ (Table 1).
 |`/gateway/api/communities` | | query communities |
 | | `?foodwebID=` | filter by _foodwebID_ |
 |`/gateway/api/lifeStages` | | list all life stages |
-|`/gateway/api/movementTypes` | | list all life stages |
+|`/gateway/api/mvoementTypes` | | list all life stages |
 |`/gateway/api/metabolicTypes` | | list all metabolic types |
 |`/gateway/api/sizeMethods` | | list all body size measurement methods |
 |`/gateway/api/references` | | list all measurement references |
@@ -54,7 +55,9 @@ As example, `/gateway/api/foodwebs?ecosystemType=lakes` returns all lake food we
 ## Access Food Web metadata
 The `gateway_foodwebs()` accesses the food web metadata, such as the name of the food web, its ecosystem type and geographic coordinates.
 ```{r foodwebs}
-gateway_foodwebs()
+fw <- gateway_foodwebs()
+fw
+table(fw[["ecosystemType"]])
 ```
 Food webs can be filtered based on their _foodwebID_ value.
 ```{r foodwebs-filtering-0}
@@ -73,10 +76,45 @@ gateway_foodwebs(ecosystemType = "lakes", xmin = 5)
 ## Access Taxon List
 The `gateway_taxa()` accesses the list of all taxa in the GATEWAy database.
 ```{r taxa}
-gateway_taxa()
+taxa <- gateway_taxa()
+taxa
+sort(table(taxa$taxonRank))
+```
+Taxa can be filtered by their _taxonID_ value.
+```{r taxa-filtering-0}
+gateway_taxa(taxonID = c(1, 5, 24, 1243))
 ```
 The optional arguments _taxonRank_ and _taxonomicStatus_ can be used to retain only taxa of a specific rank (e.g., _species_ or _family_) or taxonomic status (e.g., _accepted_ or _synonym_),
-```{ taxa-filtering}
+```{ taxa-filtering-1}
 gateway_taxa(taxonRank = "species")
 gateway_taxa(taxonRank = "species", taxonomicStatus = "accepted")
+```
+
+## Access Communities
+The `gateway_communities()` accesses the community data and takes only the required argument _foodwebID_.
+Specifying too many foodwebIDs results in hitting the limit of the URL length (most likely when `gateway_communities()` queries the taxon list).
+```{r communities-0}
+tryCatch(
+  gateway_communities(foodwebID = 1:200),
+  error = function(e) {
+    conditionMessage(e)
+})
+```
+When this happens, try reducing the number of foodwebIDs queried.
+```{r communities-1}
+communities <- gateway_communities(foodwebID = 1:100)
+communities
+```
+
+## Access Static Tables
+Static tables are tables that cannot be filtered.
+These are short tables for which server-side operations are not particularly useful.
+They are called within functions of _gatewayr_ to populate the queried tables.
+The main reason to request these tables directly by the user is to inspect available values.
+```{r static-0}
+gateway_life_stages()
+gateway_size_methods()
+gateway_movement_types()
+gateway_metabolic_types()
+gateway_references()
 ```

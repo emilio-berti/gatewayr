@@ -11,7 +11,7 @@
 #' @details Arguments are used to filter the food webs. When
 #' no parameters are provided, all food webs are returned.
 api_foodwebs <- function(params = NULL) {
-  stopifnot(is(params, "list") || is.null(params))
+  stopifnot(is(params, "list"))
   if (!is.null(params[["ecosystemType"]])) {
     stopifnot(is(params[["ecosystemType"]], "character"))
     stopifnot(params[["ecosystemType"]] %in% c(
