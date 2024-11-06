@@ -1,6 +1,6 @@
 ---
 title: "api-usage"
-output: rmarkdown::html_vignette
+output: github_document
 vignette: >
   %\VignetteIndexEntry{api-usage}
   %\VignetteEngine{knitr::rmarkdown}
