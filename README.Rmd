@@ -1,0 +1,133 @@
+---
+title: "api-usage"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{api-usage}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+options(tibble.print_max = 4, tibble.print_min = 4)
+```
+
+```{r setup}
+library(gatewayr)
+```
+
+# Access the GATEWAy API
+The _gatewayr_ package is designed to interface with the [GATEWAy API](http://localhost:8000/gateway/api/).
+This is achieved using the API REST framework and the _httr2_ R package.
+There are **n** access points to the API implmeneted in _gatewayr_ (Table 1).
+
+<p style="text-align: center; font-weight: bold;">Table 1: Endpoints of the GAYEWAy API.</p>
+| **Endpoint** | **filters** | **function** |
+| ------------ | ----------- | ------------ |
+|`/gateway/api/foodwebs` |   | query foodwebs |
+| | `?foodwebID=` | filter by _foodwebID_|
+| | `?ecosystemType=` | filter by _ecosystemType_|
+| | `?xmin=` | filter by _decimalLongitude_|
+| | `?xmax=` | filter by _decimalLongitude_|
+| | `?ymin=` | filter by _decimalLatitude_|
+| | `?ymax=` | filter by _decimalLatitude_|
+|`/gateway/api/taxa` | | query taxa|
+| | `?taxonID=` | filter by _taxonID_|
+| | `?taxonRank=` | filter by _taxonRank_|
+| | `?taxonomicStatus=` | filter by _taxonomicStatus_|
+|`/gateway/api/communities` | | query communities |
+| | `?foodwebID=` | filter by _foodwebID_ |
+|`/gateway/api/lifeStages` | | list all life stages |
+|`/gateway/api/mvoementTypes` | | list all life stages |
+|`/gateway/api/metabolicTypes` | | list all metabolic types |
+|`/gateway/api/sizeMethods` | | list all body size measurement methods |
+|`/gateway/api/references` | | list all measurement references |
+
+
+
+All endpoints that filter not based on IDs require one argument.
+Endpoints filtering on IDs can take more than one argument; in that case, arguments are separated by a `,` (coma).
+As example, `/gateway/api/foodwebs?ecosystemType=lakes` returns all lake food webs, and `/gateway/api/foodwebs?foodwebID=1,5,19` returns food webs 1, 5, and 9.
+
+## Access Food Web metadata
+The `get_foodweb()` accesses the food web metadata, such as the name of the food web, its ecosystem type and geographic coordinates.
+```{r foodwebs}
+fw <- get_foodweb()
+fw
+table(fw[["ecosystemType"]])
+```
+Food webs can be filtered based on their _foodwebID_ value.
+```{r foodwebs-filtering-0}
+get_foodweb(foodwebID = c(1, 9, 125))
+```
+The optional arguments _ecosystemType_ and _xmin_, _xmax_, _ymin_, _ymax_ can be used to filter the database to retain only the food webs from one ecosystem type or within a bounding box.
+```{r foodwebs-filtering-1}
+get_foodweb(ecosystemType = "lakes")
+```
+If some, but not all vertices of the bounding box are provided, the others will be set to not constrain the filtering.
+This allows to specify, for instance, minimum longitude only.
+```{r foodwebs-filtering-2}
+get_foodweb(ecosystemType = "lakes", xmin = 5)
+```
+
+## Access Taxon List
+The `get_taxon()` accesses the list of all taxa in the GATEWAy database.
+```{r taxa}
+taxa <- get_taxon()
+taxa
+sort(table(taxa$taxonRank))
+```
+Taxa can be filtered by their _taxonID_ value.
+```{r taxa-filtering-0}
+get_taxon(taxonID = c(1, 5, 24, 1243))
+```
+The optional arguments _taxonRank_ and _taxonomicStatus_ can be used to retain only taxa of a specific rank (e.g., _species_ or _family_) or taxonomic status (e.g., _accepted_ or _synonym_),
+```{ taxa-filtering-1}
+get_taxon(taxonRank = "species")
+get_taxon(taxonRank = "species", taxonomicStatus = "accepted")
+```
+
+## Access Communities
+The `get_community()` accesses the community data and takes only the required argument _foodwebID_.
+Specifying too many foodwebIDs results in hitting the limit of the URL length (most likely when `get_community()` queries the taxon list).
+```{r communities-0}
+tryCatch(
+  get_community(foodwebID = 1:200),
+  error = function(e) {
+    conditionMessage(e)
+})
+```
+When this happens, try reducing the number of foodwebIDs queried.
+```{r communities-1}
+communities <- get_community(foodwebID = 1:100)
+communities
+```
+The optional argument `columns` can be used to retain only certain columns.
+```{r communities-2}
+communities <- get_community(
+  foodwebID = c(1, 5, 12),
+  columns = c("foodwebName", "ecosystemType", "acceptedTaxonName")
+)
+communities
+```
+When `columns = "all"` all columns are returned.
+```{r communities-3}
+communities <- get_community(foodwebID = 5, columns = "all")
+communities
+```
+
+## Access Static Tables
+Static tables are tables that cannot be filtered.
+These are short tables for which server-side operations are not particularly useful.
+They are called within functions of _gatewayr_ to populate the queried tables.
+The main reason to request these tables directly by the user is to inspect available values.
+```{r static-0}
+get_life_stage()
+get_size_method()
+get_movement_type()
+get_metabolic_type()
+get_reference()
+```
