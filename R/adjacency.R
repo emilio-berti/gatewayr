@@ -1,13 +1,14 @@
 #' @title Adjaceny matrix
 #'
 #' @export
-#' @importFrom igraph graph_from_data_frame simplify degree delete_vertices as_adjacency_matrix
+#' @importFrom igraph graph_from_data_frame simplify degree
+#' @importFrom igraph delete_vertices as_adjacency_matrix
 #'
 #' @param df data.frame subset from GATEWAy.
 #'
 #' @return a data.frame with network metrics.
 #'
-#' 
+#'
 adjacency <- function(df) {
   df <- df[, c("res.taxonomy", "con.taxonomy")]
   g <- graph_from_data_frame(df)
@@ -21,7 +22,7 @@ adjacency <- function(df) {
   g <- simplify(g)
 
   # adjacency matrix ---------
-  A <- t(as_adjacency_matrix(g, sparse = FALSE))
+  adj <- t(as_adjacency_matrix(g, sparse = FALSE))
 
-  return (A)
+  return(adj)
 }

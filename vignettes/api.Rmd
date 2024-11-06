@@ -53,56 +53,69 @@ Endpoints filtering on IDs can take more than one argument; in that case, argume
 As example, `/gateway/api/foodwebs?ecosystemType=lakes` returns all lake food webs, and `/gateway/api/foodwebs?foodwebID=1,5,19` returns food webs 1, 5, and 9.
 
 ## Access Food Web metadata
-The `gateway_foodwebs()` accesses the food web metadata, such as the name of the food web, its ecosystem type and geographic coordinates.
+The `get_foodweb()` accesses the food web metadata, such as the name of the food web, its ecosystem type and geographic coordinates.
 ```{r foodwebs}
-fw <- gateway_foodwebs()
+fw <- get_foodweb()
 fw
 table(fw[["ecosystemType"]])
 ```
 Food webs can be filtered based on their _foodwebID_ value.
 ```{r foodwebs-filtering-0}
-gateway_foodwebs(foodwebID = c(1, 9, 125))
+get_foodweb(foodwebID = c(1, 9, 125))
 ```
 The optional arguments _ecosystemType_ and _xmin_, _xmax_, _ymin_, _ymax_ can be used to filter the database to retain only the food webs from one ecosystem type or within a bounding box.
 ```{r foodwebs-filtering-1}
-gateway_foodwebs(ecosystemType = "lakes")
+get_foodweb(ecosystemType = "lakes")
 ```
 If some, but not all vertices of the bounding box are provided, the others will be set to not constrain the filtering.
 This allows to specify, for instance, minimum longitude only.
 ```{r foodwebs-filtering-2}
-gateway_foodwebs(ecosystemType = "lakes", xmin = 5)
+get_foodweb(ecosystemType = "lakes", xmin = 5)
 ```
 
 ## Access Taxon List
-The `gateway_taxa()` accesses the list of all taxa in the GATEWAy database.
+The `get_taxon()` accesses the list of all taxa in the GATEWAy database.
 ```{r taxa}
-taxa <- gateway_taxa()
+taxa <- get_taxon()
 taxa
 sort(table(taxa$taxonRank))
 ```
 Taxa can be filtered by their _taxonID_ value.
 ```{r taxa-filtering-0}
-gateway_taxa(taxonID = c(1, 5, 24, 1243))
+get_taxon(taxonID = c(1, 5, 24, 1243))
 ```
 The optional arguments _taxonRank_ and _taxonomicStatus_ can be used to retain only taxa of a specific rank (e.g., _species_ or _family_) or taxonomic status (e.g., _accepted_ or _synonym_),
 ```{ taxa-filtering-1}
-gateway_taxa(taxonRank = "species")
-gateway_taxa(taxonRank = "species", taxonomicStatus = "accepted")
+get_taxon(taxonRank = "species")
+get_taxon(taxonRank = "species", taxonomicStatus = "accepted")
 ```
 
 ## Access Communities
-The `gateway_communities()` accesses the community data and takes only the required argument _foodwebID_.
-Specifying too many foodwebIDs results in hitting the limit of the URL length (most likely when `gateway_communities()` queries the taxon list).
+The `get_community()` accesses the community data and takes only the required argument _foodwebID_.
+Specifying too many foodwebIDs results in hitting the limit of the URL length (most likely when `get_community()` queries the taxon list).
 ```{r communities-0}
 tryCatch(
-  gateway_communities(foodwebID = 1:200),
+  get_community(foodwebID = 1:200),
   error = function(e) {
     conditionMessage(e)
 })
 ```
 When this happens, try reducing the number of foodwebIDs queried.
 ```{r communities-1}
-communities <- gateway_communities(foodwebID = 1:100)
+communities <- get_community(foodwebID = 1:100)
+communities
+```
+The optional argument `columns` can be used to retain only certain columns.
+```{r communities-2}
+communities <- get_community(
+  foodwebID = c(1, 5, 12),
+  columns = c("foodwebName", "ecosystemType", "acceptedTaxonName")
+)
+communities
+```
+When `columns = "all"` all columns are returned.
+```{r communities-3}
+communities <- get_community(foodwebID = 5, columns = "all")
 communities
 ```
 
@@ -112,9 +125,9 @@ These are short tables for which server-side operations are not particularly use
 They are called within functions of _gatewayr_ to populate the queried tables.
 The main reason to request these tables directly by the user is to inspect available values.
 ```{r static-0}
-gateway_life_stages()
-gateway_size_methods()
-gateway_movement_types()
-gateway_metabolic_types()
-gateway_references()
+get_life_stage()
+get_size_method()
+get_movement_type()
+get_metabolic_type()
+get_reference()
 ```

@@ -1,4 +1,4 @@
-#' @title Compute species (Jaccard) similarity 
+#' @title Compute species (Jaccard) similarity
 #'
 #' @export
 #' @importFrom methods is
@@ -14,25 +14,25 @@ species_jaccard <- function(df) {
     common <- length(intersect(x, y))
     total <- length(union(x, y))
     jaccard <- common / total
-    return (jaccard)
+    return(jaccard)
   }
 
   foodwebs <- unique(df[["foodweb.name"]])
   ans <- matrix(NA, nrow = length(foodwebs), ncol = length(foodwebs))
   dimnames(ans) <- list(foodwebs, foodwebs)
   for (x in foodwebs) {
-    sp.x <- union(
+    sp_x <- union(
       df[df$foodweb.name == x, "res.taxonomy"],
       df[df$foodweb.name == x, "con.taxonomy"]
     )
     for (y in setdiff(foodwebs, x)) {
-      sp.y <- union(
+      sp_y <- union(
         df[df$foodweb.name == y, "res.taxonomy"],
         df[df$foodweb.name == y, "con.taxonomy"]
       )
-      ans[x, y] <- jaccard(sp.x, sp.y)
+      ans[x, y] <- jaccard(sp_x, sp_y)
     }
   }
 
-  return (ans)
+  return(ans)
 }

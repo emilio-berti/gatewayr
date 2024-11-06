@@ -10,7 +10,7 @@
 #'
 #' @details Arguments are used to filter the food webs. When
 #' no parameters are provided, all food webs are returned.
-api_foodwebs <- function(params = NULL) {
+.api_foodwebs <- function(params = NULL) {
   stopifnot(is(params, "list"))
   if (!is.null(params[["ecosystemType"]])) {
     stopifnot(is(params[["ecosystemType"]], "character"))
@@ -58,7 +58,7 @@ api_foodwebs <- function(params = NULL) {
 #'
 #' @details Arguments are used to filter the food webs. When
 #' no parameters are provided, all food webs are returned.
-gateway_foodwebs <- function(
+get_foodweb <- function(
   foodwebID = NULL,
   ecosystemType = NULL,
   xmin = NULL,
@@ -77,7 +77,7 @@ gateway_foodwebs <- function(
   params <- list(foodwebID, ecosystemType, xmin, ymin, xmax, ymax)
   names(params) <- c("foodwebID", "ecosystemType", "xmin", "ymin", "xmax", "ymax")
   params <- params[!sapply(params, is.null) & nzchar(as.character(params))]
-  api <- api_foodwebs(params)
+  api <- .api_foodwebs(params)
   req <- request(api)
   resp <- req_perform(req)
   json <- resp |> resp_body_json()

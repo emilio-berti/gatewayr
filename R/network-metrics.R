@@ -1,12 +1,13 @@
 #' @title Compute network metrics
 #'
 #' @export
-#' @importFrom igraph graph_from_adjacency_matrix similarity transitivity mean_distance motifs
+#' @importFrom igraph graph_from_adjacency_matrix similarity
+#' @importFrom igraph transitivity mean_distance motifs
 #' @importFrom stats sd
 #' @importFrom methods is
 #' @importFrom tibble tibble
 #'
-#' @param fw matrix, adjacency matrix of the food web with resources 
+#' @param fw matrix, adjacency matrix of the food web with resources
 # as rows and consumers as columns.
 #'
 #' @return a data.frame with network metrics.
@@ -14,86 +15,88 @@
 network_metrics <- function(fw) {
   stopifnot(is(fw, "matrix"))
 
-  TroLev <- function(x) {
+  trophic_levels <- function(x) {
     x <- t(x)
-    nn <- rowSums(x); nn[nn == 0] <- 1
+    nn <- rowSums(x)
+    nn[nn == 0] <- 1
     ww <- diag(1 / nn)
-    L1 <- ww %*% x
-    L2 <- L1 - diag(rep(1, length(nn)))
+    layer_one <- ww %*% x
+    layer_two <- layer_one - diag(rep(1, length(nn)))
     b <- -1 * rep(1, length(nn))
-    Tro.lev <- solve(L2) %*% b
-    return(Tro.lev)
+    ans <- solve(layer_two) %*% b
+    return(ans)
   }
-  
-  S <- ncol(fw) #number of species
-  L <- sum(fw) #number of links
-  C <- L / (S ^ 2) #connectance
+
+  richness <- ncol(fw) #number of species
+  links <- sum(fw) #number of links
+  connectance <- links / (richness ^ 2) #connectance
   bas <- sum(colSums(fw) == 0) #number of basals
-  frB = bas / S #fraction of basals
+  fraction_basal <- bas / richness #fraction of basals
   top <- sum(rowSums(fw) == 0) #number of top
-  frT <- top / S #fraction of top
-  frI <- 1 - frT - frB #fraction of intermediate
-  frCB <- sum(diag(fw) == 1) / S#fraction cannibals
+  fraction_top <- top / richness #fraction of top
+  #fraction of intermediate
+  fraction_intermediate <- 1 - fraction_top - fraction_basal
   # standard deviation of normalized generality
-  genk <- (S / L) * apply(fw, 2, sum)
-  sdGen <- sd(genk)
+  genk <- (richness / links) * apply(fw, 2, sum)
+  std_generality <- sd(genk)
   # standard deviation of normalized vulnerability
-  vulk <- (S / L) * apply(fw, 1, sum)
-  sdVul <- sd(vulk)
-  # max. of TL
-  # if empty matrix (0 size in both dimensions), or there is no basal species
-  # then just create NA
-  TL <- tryCatch(TroLev(fw), error = function(e) rep(NA, S))
-  if (any(is.na(TL))) {
-    maxTL <- NA
-    meanTL <- NA
-    sdTL <- NA
-    frOmn <- NA
+  vulnerability <- (richness / links) * apply(fw, 1, sum)
+  std_vulnerability <- sd(vulnerability)
+  # max of trophic level
+  # If empty matrix (0 size in both dimensions)
+  # or there is no basal species then just create NA
+  trophic_level <- tryCatch(
+    trophic_levels(fw),
+    error = function(e) rep(NA, richness)
+  )
+  if (any(is.na(trophic_level))) {
+    max_trophic_level <- NA
+    mean_trophic_level <- NA
+    std_trophic_level <- NA
+    fraction_omnivores <- NA
   } else {
-    maxTL <- max(TL)
-    meanTL <- mean(TL)
-    sdTL <- sd(TL)
-    omn <- sum(TL %% 1 != 0) #number omnivores
-    frOmn <- omn / S  #fraction of omnivores
+    max_trophic_level <- max(trophic_level)
+    mean_trophic_level <- mean(trophic_level)
+    std_trophic_level <- sd(trophic_level)
+    omn <- sum(trophic_level %% 1 != 0) #number omnivores
+    fraction_omnivores <- omn / richness  #fraction of omnivores
   }
   g <- graph_from_adjacency_matrix(fw)
-  Sim <- similarity(g, mode = "all") #Jaccard similarity
-  diag(Sim) <- NA
-  meanSim <- apply(Sim, 2, mean, na.rm = TRUE)
-  MMSim <- mean(meanSim) #mean across all species
+  sim <- similarity(g, mode = "all") #Jaccard similarity
+  diag(sim) <- NA
+  mean_sim <- mean(apply(sim, 2, mean, na.rm = TRUE)) #mean across all species
   clust <- transitivity(g) #clustering ceofficient
-  CPL <- mean_distance( #characteristic path length
-    g, 
+  char_path_length <- mean_distance( #characteristic path length
+    g,
     directed = FALSE,
     unconnected = TRUE
   )
   # motifs
-  Motifs <- motifs(g, size = 3)
-  Motifsm <- matrix(Motifs)
-  SumMotifs <- sum(Motifs, na.rm = T)
-  PercentMotifs <- Motifs[1:16] / SumMotifs
-  PercentMotifsFrame <- as.data.frame(t(PercentMotifs))
+  motifs <- motifs(g, size = 3)
+  sum_motifs <- sum(motifs, na.rm = TRUE)
+  percent_motifs <- motifs[1:16] / sum_motifs
+  percent_motifs_frame <- as.data.frame(t(percent_motifs))
 
   # output of function
   ans <- tibble(
-    connectance = C,
+    connectance = connectance,
     clust = clust,
-    meanSim = MMSim,
-    sdGen = sdGen,
-    sdVul = sdVul,
-    CPL = CPL,
-    meanTL = meanTL,
-    maxTL = maxTL,
-    sdTL = sdTL,
-    frB = frB,
-    frI = frI,
-    frT = frT,
-    frOmn = frOmn,
-    fColliders = PercentMotifsFrame$V3,
-    fChains = PercentMotifsFrame$V5,
-    fForks = PercentMotifsFrame$V7,
-    fIGPs = PercentMotifsFrame$V8
+    mean_sim = mean_sim,
+    std_generality = std_generality,
+    std_vulnerability = std_vulnerability,
+    char_path_length = char_path_length,
+    mean_trophic_level = mean_trophic_level,
+    max_trophic_level = max_trophic_level,
+    std_trophic_level = std_trophic_level,
+    fraction_basal = fraction_basal,
+    fraction_intermediate = fraction_intermediate,
+    fraction_top = fraction_top,
+    fraction_omnivores = fraction_omnivores,
+    fraction_colliders = percent_motifs_frame$V3,
+    fraction_chains = percent_motifs_frame$V5,
+    fraction_forks = percent_motifs_frame$V7,
+    fraction_IGPs = percent_motifs_frame$V8
   )
 
-  return (ans)
+  return(ans)
 }

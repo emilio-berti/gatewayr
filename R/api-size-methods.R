@@ -5,11 +5,11 @@
 #' @importFrom dplyr bind_rows
 #'
 #' @return Character vector.
-gateway_size_methods <- function() {
-	api <- getOption("gateway_api")
-	stopifnot(!is.null(api))
-	api <- paste0(api, "sizeMethods")
-	req <- request(api)
+get_size_method <- function() {
+  api <- getOption("gateway_api")
+  stopifnot(!is.null(api))
+  api <- paste0(api, "sizeMethods")
+  req <- request(api)
   resp <- req_perform(req)
   json <- resp |> resp_body_json()
   ans <- json |> bind_rows()

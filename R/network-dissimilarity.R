@@ -14,10 +14,10 @@ network_pca <- function(df, ...) {
   stopifnot(is(df, "data.frame"))
 
   # PCA -------------
-  hasNA <- unique(which(is.na(df), arr.ind = TRUE)[, "col"])
+  has_na <- unique(which(is.na(df), arr.ind = TRUE)[, "col"])
   message(" - Some network properies have NA values and will be omitted:")
-  message("    ", paste(colnames(df)[hasNA], collapse = "\n    "))
-  ans <- prcomp(df[, -hasNA], center = TRUE, scale = TRUE)
+  message("    ", paste(colnames(df)[has_na], collapse = "\n    "))
+  ans <- prcomp(df[, -has_na], center = TRUE, scale = TRUE)
   if ("axes" %in% ...names()) {
     n_axis <- ...elt(which(...names() == "axes"))
   } else {
@@ -48,9 +48,10 @@ network_pca <- function(df, ...) {
 #'
 network_dissimilarity <- function(df, ...) {
   foodwebs <- unique(df$foodweb.name)
-  net <- lapply(foodwebs, \(fw) {
-    A <- adjacency(df[df$foodweb.name == fw, ])
-      return(network_metrics(A))
+  net <- lapply(
+    foodwebs, \(fw) {
+      adj <- adjacency(df[df$foodweb.name == fw, ])
+      return(network_metrics(adj))
     }
   )
   net <- do.call(rbind, net)  # concatenate list into data.frame
@@ -62,5 +63,5 @@ network_dissimilarity <- function(df, ...) {
   diag(ans) <- NA
   dimnames(ans) <- list(foodwebs, foodwebs)
 
-  return (ans)
+  return(ans)
 }

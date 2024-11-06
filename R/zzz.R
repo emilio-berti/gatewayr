@@ -1,9 +1,9 @@
-.onLoad <- function(libname, pkgname){
+.onLoad <- function(libname, pkgname) {
   op <- options()
-  op.gatewayr <- list(
+  op_gatewayr <- list(
     gateway_api = "http://localhost:8000/gateway/api/"
   )
-  toset <- !(names(op.gatewayr) %in% names(op))
-  if (any(toset)) options(op.gatewayr[toset])
+  toset <- !(names(op_gatewayr) %in% names(op))
+  if (any(toset)) options(op_gatewayr[toset])
   invisible()
 }

@@ -5,11 +5,11 @@
 #' @importFrom dplyr bind_rows
 #'
 #' @return Character vector.
-gateway_metabolic_types <- function() {
-	api <- getOption("gateway_api")
-	stopifnot(!is.null(api))
-	api <- paste0(api, "metabolicTypes")
-	req <- request(api)
+get_metabolic_type <- function() {
+  api <- getOption("gateway_api")
+  stopifnot(!is.null(api))
+  api <- paste0(api, "metabolicTypes")
+  req <- request(api)
   resp <- req_perform(req)
   json <- resp |> resp_body_json()
   ans <- json |> bind_rows()

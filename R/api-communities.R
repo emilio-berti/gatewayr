@@ -10,7 +10,7 @@
 #'
 #' @details Arguments are used to filter the communities. When
 #' no parameters are provided, all communities are returned.
-api_communities <- function(params = NULL) {
+.api_communities <- function(params = NULL) {
   stopifnot(is(params, "list"))
 
   api <- getOption("gateway_api")
@@ -42,60 +42,47 @@ api_communities <- function(params = NULL) {
 .join_communities <- function(df) {
   stopifnot(is(df, "data.frame"))
 
- # retrieve food web info
- foodwebID <- df |> pull(foodwebID) |> unique()
-  ans <- df |> 
+  # retrieve food web info
+  foodwebID <- df |> pull(foodwebID) |> unique()
+  ans <- df |>
     left_join(
-      gateway_foodwebs(foodwebID = paste(foodwebID, collapse = ",")), 
+      get_foodweb(foodwebID = paste(foodwebID, collapse = ",")),
       by = "foodwebID"
-    ) |> 
-    select(-"foodwebID")
+    )
 
   # retrieve taxa info
-  taxa <- gateway_taxa(taxonID = paste(ans |> pull("taxonID"), collapse = ","))
-  ans <- ans |> 
-    left_join(taxa, by = "taxonID") |> 
-    select(-"taxonID")
+  taxa <- get_taxon(taxonID = paste(ans |> pull("taxonID"), collapse = ","))
+  ans <- ans |> left_join(taxa, by = "taxonID")
 
   # retrieve life stages info
-  ans <- ans |> 
-    left_join(gateway_life_stages(), by = "lifeStageID") |> 
-    select(-"lifeStageID")
+  ans <- ans |> left_join(get_life_stage(), by = "lifeStageID")
 
   # retrieve movement types info
-  ans <- ans |> 
-    left_join(gateway_movement_types(), by = "movementTypeID") |> 
-    select(-"movementTypeID")
+  ans <- ans |> left_join(get_movement_type(), by = "movementTypeID")
 
   # retrieve metabolic types info
-  ans <- ans |> 
-    left_join(gateway_metabolic_types(), by = "metabolicTypeID") |> 
-    select(-"metabolicTypeID")
+  ans <- ans |> left_join(get_metabolic_type(), by = "metabolicTypeID")
 
   # retrieve size methods info
-  ans <- ans |> 
-    left_join(gateway_size_methods(), by = "sizeMethodID") |> 
-    select(-"sizeMethodID")
+  ans <- ans |> left_join(get_size_method(), by = "sizeMethodID")
 
   # retrieve references info
-  ans <- ans |> 
-    left_join(gateway_references(), by = "referenceID") |> 
-    select(-"referenceID")
+  ans <- ans |> left_join(get_reference(), by = "referenceID")
 
-  ans <- ans |> 
-    relocate(contains("Mass"), .after = "lifeStage") |> 
+  ans <- ans |>
+    relocate(contains("Mass"), .after = "lifeStage") |>
     relocate(contains("Length"), .after = "meanMass")
 
   return(ans)
 }
 
-#' @title Download Food Webs
+#' @title Download GATEWAy Communities
 #'
 #' @export
 #' @importFrom methods is
 #' @importFrom httr2 request req_perform resp_body_json
-#' @importFrom dplyr bind_rows
-#' 
+#' @importFrom dplyr bind_rows any_of
+#'
 #' @param foodwebID Numeric value of Food Web ID.
 #' @param columns Character vector of the columns to return.
 #'
@@ -103,7 +90,7 @@ api_communities <- function(params = NULL) {
 #'
 #' @details Arguments are used to filter the communities. When
 #' no parameters are provided, all communities are returned..
-gateway_communities <- function(
+get_community <- function(
   foodwebID = NULL,
   columns = c(
     "foodwebName", "acceptedTaxonName",
@@ -118,19 +105,21 @@ gateway_communities <- function(
   params <- list(foodwebID)
   names(params) <- c("foodwebID")
   params <- params[!sapply(params, is.null) & nzchar(as.character(params))]
-  api <- api_communities(params)
+  api <- .api_communities(params)
   req <- request(api)
   resp <- tryCatch(
     req_perform(req),
     error = function(e) {
       stop(conditionMessage(e), " Try passing fewer IDs.")
-  })  
+    }
+  )
   json <- resp |> resp_body_json()
   ans <- json |> bind_rows()
 
   ans <- .join_communities(ans)
-  ans <- ans |> select(any_of(columns))
+  if (length(columns) > 1 || tolower(columns) != "all") {
+    ans <- ans |> select(any_of(columns))
+  }
 
   return(ans)
 }
-
