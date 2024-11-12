@@ -51,7 +51,8 @@
     )
 
   # retrieve taxa info
-  taxa <- get_taxon(taxonID = paste(ans |> pull("taxonID"), collapse = ","))
+  taxa <- paste(ans |> pull("taxonID") |> unique(), collapse = ",")
+  taxa <- get_taxon(taxonID = taxa)
   ans <- ans |> left_join(taxa, by = "taxonID")
 
   # retrieve life stages info
@@ -97,10 +98,11 @@ get_community <- function(
     "lifeStage", "meanMass", "meanLength", "biomass"
   )
 ) {
+  if (length(foodwebID) == 0) {
+    foodwebID <- get_foodweb()[["foodwebID"]]
+  }
   if (length(foodwebID) > 1) {
     foodwebID <- paste(foodwebID, collapse = ",")
-  } else if (length(foodwebID) == 0) {
-    stop("You need to provide at least one 'foodwebID'")
   }
   params <- list(foodwebID)
   names(params) <- c("foodwebID")

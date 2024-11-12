@@ -91,24 +91,14 @@ get_taxon(taxonRank = "species", taxonomicStatus = "accepted")
 ```
 
 ## Access Communities
-The `get_community()` accesses the community data and takes only the required argument _foodwebID_.
-Specifying too many foodwebIDs results in hitting the limit of the URL length (most likely when `get_community()` queries the taxon list).
+The `get_community()` accesses the community data and takes only the argument _foodwebID_.
 ```{r communities-0}
-tryCatch(
-  get_community(foodwebID = 1:200),
-  error = function(e) {
-    conditionMessage(e)
-})
-```
-When this happens, try reducing the number of foodwebIDs queried.
-```{r communities-1}
-communities <- get_community(foodwebID = 1:100)
-communities
+get_community(foodwebID = c(2, 5, 12))
 ```
 The optional argument `columns` can be used to retain only certain columns.
 ```{r communities-2}
 communities <- get_community(
-  foodwebID = c(1, 5, 12),
+  foodwebID = c(2, 5, 12),
   columns = c("foodwebName", "ecosystemType", "acceptedTaxonName")
 )
 communities
@@ -117,6 +107,26 @@ When `columns = "all"` all columns are returned.
 ```{r communities-3}
 communities <- get_community(foodwebID = 5, columns = "all")
 communities
+```
+
+## Access Interactions
+The `get_interaction()` accesses the interaction data and can take the arguments _resourceID_, _consumerID_, and _foodwebID_.
+
+```{r interactions-0}
+library(gatewayr)
+interactions <- get_interaction(resourceID = 2291)
+interactions
+table(interactions[["foodwebName"]])
+```
+
+```{r interactions-1}
+interactions <- get_interaction(resourceID = 2291, foodwebID = 100)
+interactions
+```
+
+```{r interactions-2}
+interactions <- get_interaction(foodwebID = 100)
+interactions
 ```
 
 ## Access Static Tables
@@ -130,4 +140,34 @@ get_size_method()
 get_movement_type()
 get_metabolic_type()
 get_reference()
+```
+
+# Database Coverage
+
+`coverage()` calculates the data coverage of the table, i.e. the fraction of entries that are not NA.
+```{r coverage}
+library(gatewayr)
+interactions <- get_interaction(foodwebID = 1)
+coverage(interactions)
+```
+The coverage table is always arranged in increasing order of coverage.
+
+```{r coverage-food-webs}
+coverage(get_foodweb())
+```
+
+```{r coverage-taxa}
+coverage(get_taxon())
+```
+
+```{r coverage-community}
+coverage(get_community())
+coverage(get_community(columns = "all"))
+```
+
+```{r coverage-interaction}
+library(gatewayr)
+interactions <- get_interaction()
+coverage_interactions <- coverage(interactions)
+coverage_interactions[coverage_interactions[["coverage"]] > 0, ]
 ```

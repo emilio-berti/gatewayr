@@ -1,147 +1,159 @@
-# #' @title Create API URL for Interactions
-# #'
-# #' @export
-# #' @importFrom methods is
-# #' @importFrom utils URLencode
-# #'
-# #' @param params list of filtering parameters.
-# #'
-# #' @return Data frame with food web data.
-# #'
-# #' @details Arguments are used to filter the food webs. When
-# #' no parameters are provided, all food webs are returned.
-# .api_interactions <- function(params = NULL) {
-#   stopifnot(is(params, "list"))
+#' @title Create API URL for Interactions
+#'
+#' @export
+#' @importFrom methods is
+#' @importFrom utils URLencode
+#'
+#' @param params list of filtering parameters.
+#'
+#' @return Data frame with food web data.
+#'
+#' @details Arguments are used to filter the food webs. When
+#' no parameters are provided, all food webs are returned.
+.api_interactions <- function(params = NULL) {
+  stopifnot(is(params, "list"))
 
-#   api <- getOption("gateway_api")
-#   if (is.null(api)) stop("API URL is empty, contact the package developer.")
-#   api <- paste0(api, "interactions")
+  api <- getOption("gateway_api")
+  if (is.null(api)) stop("API URL is empty, contact the package developer.")
+  api <- paste0(api, "interactions")
 
-#   if (length(params) >= 1) {
-#     query_string <- paste(
-#       sapply(names(params), function(key) {
-#         paste0(URLencode(key), "=", URLencode(as.character(params[[key]])))
-#       }), collapse = "&"
-#     )
-#     api <- paste(api, query_string, sep = "?")
-#   }
+  if (length(params) >= 1) {
+    query_string <- paste(
+      sapply(names(params), function(key) {
+        paste0(URLencode(key), "=", URLencode(as.character(params[[key]])))
+      }), collapse = "&"
+    )
+    api <- paste(api, query_string, sep = "?")
+  }
 
-#   return(api)
-# }
+  return(api)
+}
 
-# #' @title Join Raw Interaction Table with other Tables
-# #'
-# #' @export
-# #' @importFrom methods is
-# #' @importFrom httr2 request req_perform resp_body_json
-# #' @importFrom dplyr pull select left_join relocate contains join_by
-# #'
-# #' @param df Table with raw community data.
-# #'
-# #' @return Data frame with community data.
-# .join_interactions <- function(df) {
-#   stopifnot(is(df, "data.frame"))
+#' @title Join Raw Interaction Table with other Tables
+#'
+#' @export
+#' @importFrom methods is
+#' @importFrom httr2 request req_perform resp_body_json
+#' @importFrom dplyr pull select left_join relocate
+#' @importFrom dplyr contains join_by all_of mutate rename_with
+#'
+#' @param df Table with raw community data.
+#'
+#' @return Data frame with community data.
+.join_interactions <- function(df) {
+  stopifnot(is(df, "data.frame"))
 
-#   # retrieve community info
-#   communities <- df |> 
-#     pull(foodwebID) |> 
-#     get_community(columns = "all")
+  # retrieve community info
+  resources <- df |>
+    pull("foodwebID") |>
+    unique() |>
+    get_community(columns = "all") |>
+    mutate(resourceID = communityID) |>
+    rename_with(
+      ~paste("resource", gsub("^([a-z])", "\\U\\1", ., perl = TRUE), sep = ""),
+      .cols = "acceptedTaxonName":"reference"
+    ) |>
+    select(-c("communityID", "taxonID":"referenceID"))
 
-#   # retrieve food web info
-#   foodwebID <- df |> pull(foodwebID) |> unique()
-#   ans <- df |> 
-#     left_join(
-#       get_foodweb(foodwebID = paste(foodwebID, collapse = ",")) |> 
-#         select("foodwebID", "foodwebName"), 
-#       by = "foodwebID"
-#     ) |> 
-#     select(-"foodwebID")
+  consumers <- df |>
+    pull("foodwebID") |>
+    unique() |>
+    get_community(columns = "all") |>
+    mutate(consumerID = communityID) |>
+    rename_with(
+      ~paste("consumer", gsub("^([a-z])", "\\U\\1", ., perl = TRUE), sep = ""),
+      .cols = "acceptedTaxonName":"reference"
+    ) |>
+    select(-c("communityID", "taxonID":"latestDateCollected"))
 
-#   # retrieve resource info
-#   ans <- ans |> 
-#     left_join(
-#       communities |> 
-#         select("taxonID", "lifeStage", "acceptedTaxonName", "taxonRank"),
-#       by = join_by("resourceID" == "taxonID")
-#     )
+  ordered_columns <- c(
+    "resourceAcceptedTaxonName", "consumerAcceptedTaxonName",
+    "resourceLifeStage", "consumerLifeStage",
+    "resourceLowestMass", "resourceHighestMass", "resourceMeanMass",
+    "consumerLowestMass", "consumerHighestMass", "consumerMeanMass",
+    "resourceShortestLength", "resourceLongestLength", "resourceMeanLength",
+    "consumerShortestLength", "consumerLongestLength", "consumerMeanLength",
+    "resourceSizeMethod", "consumerSizeMethod",
+    "resourceBiomass", "consumerBiomass",
+    "resourceMovementType", "consumerMovementType",
+    "resourceMetabolicType", "consumerMetabolicType",
+    "resourceTaxonRank", "consumerTaxonRank",
+    "resourceTaxonomicStatus", "consumerTaxonomicStatus",
+    "resourceVernacularName", "consumerVernacularName",
+    "resourceReference", "consumerReference",
+    "interactionDimensionality", "basisOfRecord", "interactionRemarks",
+    "foodwebName", "ecosystemType", "decimalLongitude", "decimalLatitude",
+    "geographicLocation", "studySite",
+    "verbatimElevation", "verbatimDepth",
+    "samplingTime", "earliestDateCollected", "latestDateCollected"
+  )
 
-#   # retrieve consumer name
-#   consumers <- get_taxon(taxonID = paste(ans |> pull("consumerID"), collapse = ","))
-#   ans <- ans |> 
-#     left_join(consumers, by = join_by("consumerID" == "taxonID"))
+  ans <- df |>
+    left_join(resources, by = c("resourceID", "foodwebID")) |>
+    left_join(consumers, by = c("consumerID", "foodwebID")) |>
+    left_join(
+      get_interaction_method(),
+      by = "interactionMethodID"
+    ) |>
+    left_join(
+      get_interaction_type(),
+      by = "interactionTypeID"
+    ) |>
+    select(-contains("ID")) |>
+    select(all_of(ordered_columns))
 
-#   # retrieve life stages info
+  return(ans)
+}
 
-#   ans <- ans |> 
-#     left_join(get_life_stage(), by = "lifeStageID") |> 
-#     select(-"lifeStageID")
+#' @title Download Interactions
+#'
+#' @export
+#' @importFrom methods is
+#' @importFrom httr2 request req_perform resp_body_json
+#' @importFrom dplyr bind_rows
+#'
+#' @param foodwebID Integer of Food Web ID.
+#' @param resourceID Integer of Resource ID.
+#' @param consumerID Integer of Consumer ID.
+#'
+#' @return Data frame with interaction data.
+#'
+#' @details Arguments are used to filter the interactions. When
+#' no parameters are provided, all interactions are returned.
+get_interaction <- function(
+  foodwebID = NULL,
+  resourceID = NULL,
+  consumerID = NULL
+) {
 
-#   # retrieve movement types info
-#   ans <- ans |> 
-#     left_join(get_movement_type(), by = "movementTypeID") |> 
-#     select(-"movementTypeID")
+  if (length(foodwebID) == 0) {
+    foodwebID <- get_foodweb()[["foodwebID"]]
+  }
+  if (length(foodwebID) > 1) {
+    foodwebID <- paste(foodwebID, collapse = ",")
+  }
+  if (length(resourceID) > 1) {
+    resourceID <- paste(resourceID, collapse = ",")
+  }
+  if (length(consumerID) > 1) {
+    consumerID <- paste(consumerID, collapse = ",")
+  }
 
-#   # retrieve metabolic types info
-#   ans <- ans |> 
-#     left_join(get_metabolic_type(), by = "metabolicTypeID") |> 
-#     select(-"metabolicTypeID")
+  params <- list(foodwebID, resourceID, consumerID)
+  names(params) <- c("foodwebID", "resourceID", "consumerID")
+  params <- params[!sapply(params, is.null) & nzchar(as.character(params))]
+  if (length(params) == 0) {
+    stop("No filtering parameters specified.")
+  }
+  api <- .api_interactions(params)
+  req <- request(api)
+  resp <- req_perform(req)
+  json <- resp |> resp_body_json()
+  if (length(json) == 0) {
+    stop("No data found with the specified parameters.")
+  }
+  ans <- json |> bind_rows()
+  ans <- .join_interactions(ans)
 
-#   # retrieve size methods info
-#   ans <- ans |> 
-#     left_join(get_size_method(), by = "sizeMethodID") |> 
-#     select(-"sizeMethodID")
-
-#   # retrieve references info
-#   ans <- ans |> 
-#     left_join(get_reference(), by = "referenceID") |> 
-#     select(-"referenceID")
-
-#   ans <- ans |> 
-#     relocate(contains("Mass"), .after = "lifeStage") |> 
-#     relocate(contains("Length"), .after = "meanMass")
-
-#   return(ans)
-# }
-
-# #' @title Download Interactions
-# #'
-# #' @export
-# #' @importFrom methods is
-# #' @importFrom httr2 request req_perform resp_body_json
-# #' @importFrom dplyr bind_rows
-# #'
-# #' @param foodwebID Integer of Food Web ID.
-# #' @param resourceID Integer of Resource ID.
-# #' @param consumerID Integer of Consumer ID.
-# #'
-# #' @return Data frame with interaction data.
-# #'
-# #' @details Arguments are used to filter the interactions. When
-# #' no parameters are provided, all interactions are returned.
-# get_interaction <- function(
-#   foodwebID = NULL,
-#   resourceID = NULL,
-#   consumerID = NULL
-# ) {
-  
-#   if (length(foodwebID) > 1) {
-#     foodwebID <- paste(foodwebID, collapse = ",")
-#   }
-#   if (length(resourceID) > 1) {
-#     resourceID <- paste(resourceID, collapse = ",")
-#   }
-#   if (length(consumerID) > 1) {
-#     consumerID <- paste(consumerID, collapse = ",")
-#   }
-  
-#   params <- list(foodwebID, resourceID, consumerID)
-#   names(params) <- c("foodwebID", "resourceID", "consumerID")
-#   params <- params[!sapply(params, is.null) & nzchar(as.character(params))]
-#   api <- .api_interactions(params)
-#   req <- request(api)
-#   resp <- req_perform(req)
-#   json <- resp |> resp_body_json()
-#   ans <- json |> bind_rows()
-
-#   return(ans)
-# }
+  return(ans)
+}

@@ -16,7 +16,8 @@ Imports:
     methods,
     httr2,
     tibble,
-    dplyr
+    dplyr,
+    tidyr
 LazyData: true
 Suggests: 
     knitr,

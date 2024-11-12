@@ -12,6 +12,8 @@ get_movement_type <- function() {
   req <- request(api)
   resp <- req_perform(req)
   json <- resp |> resp_body_json()
-  ans <- json |> bind_rows()
+  ans <- json |>
+    bind_rows() |>
+    mutate(movementType = ifelse(movementType == "nan", NA, movementType))
   return(ans)
 }

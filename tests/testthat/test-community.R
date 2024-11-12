@@ -17,12 +17,13 @@ test_that("selecting community columns works", {
 
 test_that("selecting all community columns works", {
   choices <- c(
-    "foodwebID", "taxonID", "lifeStageID", "metabolicTypeID",
+    "communityID", "foodwebID", "taxonID", "lifeStageID", "metabolicTypeID",
     "movementTypeID", "sizeMethodID", "referenceID",
     "foodwebName", "ecosystemType", "decimalLongitude",
     "decimalLatitude", "geographicLocation", "studySite",
-    "verbatimElevation", "verbatimDepth", "acceptedTaxonName",
-    "taxonRank", "taxonomicStatus", "vernacularName",
+    "verbatimElevation", "verbatimDepth",
+    "samplingTime", "earliestDateCollected", "latestDateCollected",
+    "acceptedTaxonName", "taxonRank", "taxonomicStatus", "vernacularName",
     "lifeStage", "lowestMass", "highestMass",
     "meanMass", "shortestLength", "longestLength",
     "meanLength", "biomass", "movementType",

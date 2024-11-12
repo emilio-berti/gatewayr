@@ -12,6 +12,8 @@ get_reference <- function() {
   req <- request(api)
   resp <- req_perform(req)
   json <- resp |> resp_body_json()
-  ans <- json |> bind_rows()
+  ans <- json |>
+    bind_rows() |>
+    mutate(reference = ifelse(reference == "nan", NA, reference))
   return(ans)
 }

@@ -12,6 +12,8 @@ get_life_stage <- function() {
   req <- request(api)
   resp <- req_perform(req)
   json <- resp |> resp_body_json()
-  ans <- json |> bind_rows()
+  ans <- json |>
+    bind_rows() |>
+    mutate(lifeStage = ifelse(lifeStage == "nan", NA, lifeStage))
   return(ans)
 }

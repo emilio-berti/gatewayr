@@ -12,6 +12,8 @@ get_size_method <- function() {
   req <- request(api)
   resp <- req_perform(req)
   json <- resp |> resp_body_json()
-  ans <- json |> bind_rows()
+  ans <- json |>
+    bind_rows() |>
+    mutate(sizeMethod = ifelse(sizeMethod == "nan", NA, sizeMethod))
   return(ans)
 }
