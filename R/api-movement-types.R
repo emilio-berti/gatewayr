@@ -14,6 +14,12 @@ get_movement_type <- function() {
   json <- resp |> resp_body_json()
   ans <- json |>
     bind_rows() |>
-    mutate(movementType = ifelse(movementType == "nan", NA, movementType))
+    mutate(
+      movementType = ifelse(
+        .data$movementType == "nan",
+        NA,
+        .data$movementType
+      )
+    )
   return(ans)
 }

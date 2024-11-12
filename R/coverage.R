@@ -2,7 +2,7 @@
 #'
 #' @export
 #' @importFrom methods is
-#' @importFrom dplyr summarize across everything mutate select arrange
+#' @importFrom dplyr summarize across where everything mutate select arrange
 #' @importFrom tidyr pivot_longer
 #'
 #' @param df table.
@@ -22,7 +22,7 @@ coverage <- function(df) {
       values_to = "n na"
     ) |>
     mutate(`n rows` = nrow(df)) |>
-    mutate(coverage = 1 - `n na` / `n rows`) |>
+    mutate(coverage = 1 - .data$`n na` / .data$`n rows`) |>
     select("column", "coverage") |>
     arrange(coverage)
 

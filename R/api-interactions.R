@@ -48,7 +48,7 @@
     pull("foodwebID") |>
     unique() |>
     get_community(columns = "all") |>
-    mutate(resourceID = communityID) |>
+    mutate(resourceID = .data$communityID) |>
     rename_with(
       ~paste("resource", gsub("^([a-z])", "\\U\\1", ., perl = TRUE), sep = ""),
       .cols = "acceptedTaxonName":"reference"
@@ -59,7 +59,7 @@
     pull("foodwebID") |>
     unique() |>
     get_community(columns = "all") |>
-    mutate(consumerID = communityID) |>
+    mutate(consumerID = .data$communityID) |>
     rename_with(
       ~paste("consumer", gsub("^([a-z])", "\\U\\1", ., perl = TRUE), sep = ""),
       .cols = "acceptedTaxonName":"reference"

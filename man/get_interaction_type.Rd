@@ -7,7 +7,7 @@
 get_interaction_type()
 }
 \value{
-Character vector.
+Character vector
 }
 \description{
 GATEWAy Interaction Types

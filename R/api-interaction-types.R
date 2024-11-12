@@ -4,7 +4,7 @@
 #' @importFrom httr2 request req_perform resp_body_json
 #' @importFrom dplyr bind_rows
 #'
-#' @return Character vector.
+#' @return Character vector
 get_interaction_type <- function() {
   api <- getOption("gateway_api")
   stopifnot(!is.null(api))
@@ -16,9 +16,9 @@ get_interaction_type <- function() {
     bind_rows() |>
     mutate(
       interactionType = ifelse(
-        interactionType == "nan",
+        .data$interactionType == "nan",
         NA,
-        interactionType
+        .data$interactionType
       )
     )
   return(ans)

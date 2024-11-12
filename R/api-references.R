@@ -14,6 +14,12 @@ get_reference <- function() {
   json <- resp |> resp_body_json()
   ans <- json |>
     bind_rows() |>
-    mutate(reference = ifelse(reference == "nan", NA, reference))
+    mutate(
+      reference = ifelse(
+        .data$reference == "nan",
+        NA, 
+        .data$reference
+      )
+    )
   return(ans)
 }

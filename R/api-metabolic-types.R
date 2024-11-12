@@ -14,6 +14,12 @@ get_metabolic_type <- function() {
   json <- resp |> resp_body_json()
   ans <- json |>
     bind_rows() |>
-    mutate(metabolicType = ifelse(metabolicType == "nan", NA, metabolicType))
+    mutate(
+      metabolicType = ifelse(
+        .data$metabolicType == "nan",
+        NA,
+        .data$metabolicType
+      )
+    )
   return(ans)
 }

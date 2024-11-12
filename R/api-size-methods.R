@@ -2,7 +2,7 @@
 #'
 #' @export
 #' @importFrom httr2 request req_perform resp_body_json
-#' @importFrom dplyr bind_rows
+#' @importFrom dplyr bind_rows .data
 #'
 #' @return Character vector.
 get_size_method <- function() {
@@ -14,6 +14,12 @@ get_size_method <- function() {
   json <- resp |> resp_body_json()
   ans <- json |>
     bind_rows() |>
-    mutate(sizeMethod = ifelse(sizeMethod == "nan", NA, sizeMethod))
+    mutate(
+      sizeMethod = ifelse(
+        .data$sizeMethod == "nan",
+        NA,
+        .data$sizeMethod
+      )
+    )
   return(ans)
 }

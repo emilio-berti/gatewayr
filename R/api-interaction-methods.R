@@ -16,9 +16,9 @@ get_interaction_method <- function() {
     bind_rows() |>
     mutate(
       interactionMethod = ifelse(
-        interactionMethod == "nan",
+        .data$interactionMethod == "nan",
         NA,
-        interactionMethod
+        .data$interactionMethod
       )
     )
   return(ans)

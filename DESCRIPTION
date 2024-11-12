@@ -1,10 +1,10 @@
 Package: gatewayr
-Title: What the Package Does (One Line, Title Case)
-Version: 0.1
+Title: Interface With The GATEWAy Database
+Version: 0.2
 Authors@R: 
     person("Emilio", "Berti", , "emilio.berti@idiv.de", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-9286-011X"))
-Description: What the package does (one paragraph).
+Description: gatewayr interfaces with the GATEWAy database through the API hosted at <https://econetlab.de/gateway/api>. gatewayr get the food webs, taxa, communities, and interactions tables.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

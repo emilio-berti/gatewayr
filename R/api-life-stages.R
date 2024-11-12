@@ -14,6 +14,12 @@ get_life_stage <- function() {
   json <- resp |> resp_body_json()
   ans <- json |>
     bind_rows() |>
-    mutate(lifeStage = ifelse(lifeStage == "nan", NA, lifeStage))
+    mutate(
+      lifeStage = ifelse(
+        .data$lifeStage == "nan",
+        NA,
+        .data$lifeStage
+      )
+    )
   return(ans)
 }
