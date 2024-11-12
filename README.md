@@ -63,7 +63,7 @@ fw
 #> # ℹ 332 more rows
 #> # ℹ 7 more variables: geographicLocation <chr>, studySite <chr>,
 #> #   verbatimElevation <dbl>, verbatimDepth <dbl>, samplingTime <chr>,
-#> #   earliestDateCollected <int>, latestDateCollected <int>
+#> #   earliestDateCollected <chr>, latestDateCollected <chr>
 table(fw[["ecosystemType"]])
 #> 
 #>                   lakes                  marine                 streams 
@@ -84,7 +84,7 @@ get_foodweb(foodwebID = c(1, 9, 125))
 #> 3       125 afon hafren 2005      streams                  -3.7             52.5
 #> # ℹ 7 more variables: geographicLocation <chr>, studySite <chr>,
 #> #   verbatimElevation <dbl>, verbatimDepth <dbl>, samplingTime <chr>,
-#> #   earliestDateCollected <int>, latestDateCollected <int>
+#> #   earliestDateCollected <chr>, latestDateCollected <chr>
 ```
 
 The optional arguments *ecosystemType* and *xmin*, *xmax*, *ymin*,
@@ -103,7 +103,7 @@ get_foodweb(ecosystemType = "lakes")
 #> # ℹ 56 more rows
 #> # ℹ 7 more variables: geographicLocation <chr>, studySite <chr>,
 #> #   verbatimElevation <dbl>, verbatimDepth <dbl>, samplingTime <chr>,
-#> #   earliestDateCollected <int>, latestDateCollected <int>
+#> #   earliestDateCollected <chr>, latestDateCollected <chr>
 ```
 
 If some, but not all vertices of the bounding box are provided, the
@@ -112,7 +112,7 @@ specify, for instance, minimum longitude only.
 
 ``` r
 get_foodweb(ecosystemType = "lakes", xmin = 5)
-#> # A tibble: 6 × 11
+#> # A tibble: 6 × 12
 #>   foodwebID foodwebName           ecosystemType decimalLongitude decimalLatitude
 #>       <int> <chr>                 <chr>                    <dbl>           <dbl>
 #> 1         2 grand caricaie marsh… lakes                     6.98            46.9
@@ -120,9 +120,9 @@ get_foodweb(ecosystemType = "lakes", xmin = 5)
 #> 3         7 grand caricaie marsh… lakes                     6.99            46.9
 #> 4         9 grand caricaie marsh… lakes                     6.98            46.9
 #> # ℹ 2 more rows
-#> # ℹ 6 more variables: geographicLocation <chr>, studySite <chr>,
-#> #   verbatimElevation <dbl>, verbatimDepth <dbl>, earliestDateCollected <int>,
-#> #   latestDateCollected <int>
+#> # ℹ 7 more variables: geographicLocation <chr>, studySite <chr>,
+#> #   verbatimElevation <dbl>, verbatimDepth <dbl>, samplingTime <chr>,
+#> #   earliestDateCollected <chr>, latestDateCollected <chr>
 ```
 
 ## Access Taxon List
@@ -169,32 +169,18 @@ taxonomic status (e.g., *accepted* or *synonym*),
 ## Access Communities
 
 The `get_community()` accesses the community data and takes only the
-required argument *foodwebID*. Specifying too many foodwebIDs results in
-hitting the limit of the URL length (most likely when `get_community()`
-queries the taxon list).
+argument *foodwebID*.
 
 ``` r
-tryCatch(
-  get_community(foodwebID = 1:200),
-  error = function(e) {
-    conditionMessage(e)
-})
-#> [1] "HTTP 414 URI Too Long. Try passing fewer IDs."
-```
-
-When this happens, try reducing the number of foodwebIDs queried.
-
-``` r
-communities <- get_community(foodwebID = 1:100)
-communities
-#> # A tibble: 9,289 × 6
+get_community(foodwebID = c(2, 5, 12))
+#> # A tibble: 21 × 6
 #>   foodwebName            acceptedTaxonName lifeStage meanMass meanLength biomass
 #>   <chr>                  <chr>             <chr>        <dbl>      <dbl>   <dbl>
-#> 1 grand caricaie marsh … Acrididae         larvae    0.0410         -999    -999
-#> 2 grand caricaie marsh … Agonum viduum     nan       0.0371         -999    -999
-#> 3 grand caricaie marsh … Anacaena limbata  nan       0.000982       -999    -999
-#> 4 grand caricaie marsh … Anisoptera        nan       0.241          -999    -999
-#> # ℹ 9,285 more rows
+#> 1 grand caricaie marsh … Ceratopogonidae   larvae    0.00332        -999       0
+#> 2 grand caricaie marsh … Chironomidae      larvae    0.000744       -999       0
+#> 3 grand caricaie marsh … Haemopis sanguis… <NA>      0.212          -999       0
+#> 4 grand caricaie marsh … Limacidae         <NA>      0.345          -999       0
+#> # ℹ 17 more rows
 ```
 
 The optional argument `columns` can be used to retain only certain
@@ -202,18 +188,18 @@ columns.
 
 ``` r
 communities <- get_community(
-  foodwebID = c(1, 5, 12),
+  foodwebID = c(2, 5, 12),
   columns = c("foodwebName", "ecosystemType", "acceptedTaxonName")
 )
 communities
-#> # A tibble: 224 × 3
+#> # A tibble: 21 × 3
 #>   foodwebName                                    ecosystemType acceptedTaxonName
 #>   <chr>                                          <chr>         <chr>            
-#> 1 grand caricaie marsh dominated by cladietum m… terrestrial … Acrididae        
-#> 2 grand caricaie marsh dominated by cladietum m… terrestrial … Agonum viduum    
-#> 3 grand caricaie marsh dominated by cladietum m… terrestrial … Anacaena limbata 
-#> 4 grand caricaie marsh dominated by cladietum m… terrestrial … Anisoptera       
-#> # ℹ 220 more rows
+#> 1 grand caricaie marsh dominated by cladietum m… lakes         Ceratopogonidae  
+#> 2 grand caricaie marsh dominated by cladietum m… lakes         Chironomidae     
+#> 3 grand caricaie marsh dominated by cladietum m… lakes         Haemopis sanguis…
+#> 4 grand caricaie marsh dominated by cladietum m… lakes         Limacidae        
+#> # ℹ 17 more rows
 ```
 
 When `columns = "all"` all columns are returned.
@@ -221,20 +207,86 @@ When `columns = "all"` all columns are returned.
 ``` r
 communities <- get_community(foodwebID = 5, columns = "all")
 communities
-#> # A tibble: 6 × 31
-#>   foodwebID taxonID lifeStageID metabolicTypeID movementTypeID sizeMethodID
-#>       <int>   <int>       <int>           <int>          <int>        <int>
-#> 1         5     809          10               7              5            3
-#> 2         5     885          10               7              5            3
-#> 3         5    1908          18               7              5            3
-#> 4         5    2305          10               7              6            3
+#> # A tibble: 6 × 35
+#>   communityID foodwebID taxonID lifeStageID metabolicTypeID movementTypeID
+#>         <int>     <int>   <int>       <int>           <int>          <int>
+#> 1          53         5     809          10               7              5
+#> 2          23         5     885          10               7              5
+#> 3         325         5    1908          18               7              5
+#> 4         358         5    2305          10               7              6
 #> # ℹ 2 more rows
-#> # ℹ 25 more variables: referenceID <int>, foodwebName <chr>,
-#> #   ecosystemType <chr>, decimalLongitude <dbl>, decimalLatitude <dbl>,
-#> #   geographicLocation <chr>, studySite <chr>, verbatimElevation <dbl>,
-#> #   verbatimDepth <dbl>, acceptedTaxonName <chr>, taxonRank <chr>,
-#> #   taxonomicStatus <chr>, vernacularName <chr>, lifeStage <chr>,
-#> #   lowestMass <dbl>, highestMass <dbl>, meanMass <dbl>, …
+#> # ℹ 29 more variables: sizeMethodID <int>, referenceID <int>,
+#> #   foodwebName <chr>, ecosystemType <chr>, decimalLongitude <dbl>,
+#> #   decimalLatitude <dbl>, geographicLocation <chr>, studySite <chr>,
+#> #   verbatimElevation <dbl>, verbatimDepth <dbl>, samplingTime <chr>,
+#> #   earliestDateCollected <chr>, latestDateCollected <chr>,
+#> #   acceptedTaxonName <chr>, taxonRank <chr>, taxonomicStatus <chr>, …
+```
+
+## Access Interactions
+
+The `get_interaction()` accesses the interaction data and can take the
+arguments *resourceID*, *consumerID*, and *foodwebID*.
+
+``` r
+library(gatewayr)
+interactions <- get_interaction(resourceID = 2291)
+interactions
+#> # A tibble: 11 × 46
+#>   resourceAcceptedTaxonName consumerAcceptedTaxonName resourceLifeStage
+#>   <chr>                     <chr>                     <chr>            
+#> 1 Cyanobacteriales          Diaptomus minutus         <NA>             
+#> 2 Cyanobacteriales          Daphnia catawba           <NA>             
+#> 3 Cyanobacteriales          Daphnia galeata           <NA>             
+#> 4 Cyanobacteriales          Daphnia longiremis        <NA>             
+#> # ℹ 7 more rows
+#> # ℹ 43 more variables: consumerLifeStage <chr>, resourceLowestMass <dbl>,
+#> #   resourceHighestMass <dbl>, resourceMeanMass <dbl>,
+#> #   consumerLowestMass <dbl>, consumerHighestMass <dbl>,
+#> #   consumerMeanMass <dbl>, resourceShortestLength <dbl>,
+#> #   resourceLongestLength <dbl>, resourceMeanLength <dbl>,
+#> #   consumerShortestLength <dbl>, consumerLongestLength <dbl>, …
+table(interactions[["foodwebName"]])
+#> 
+#>      hoel lake lost lake east       rat lake 
+#>              5              3              3
+```
+
+``` r
+interactions <- get_interaction(resourceID = 2291, foodwebID = 100)
+interactions
+#> # A tibble: 3 × 46
+#>   resourceAcceptedTaxonName consumerAcceptedTaxonName resourceLifeStage
+#>   <chr>                     <chr>                     <chr>            
+#> 1 Cyanobacteriales          Daphnia catawba           <NA>             
+#> 2 Cyanobacteriales          Diaptomus minutus         <NA>             
+#> 3 Cyanobacteriales          Holopedium gibberum       <NA>             
+#> # ℹ 43 more variables: consumerLifeStage <chr>, resourceLowestMass <dbl>,
+#> #   resourceHighestMass <dbl>, resourceMeanMass <dbl>,
+#> #   consumerLowestMass <dbl>, consumerHighestMass <dbl>,
+#> #   consumerMeanMass <dbl>, resourceShortestLength <dbl>,
+#> #   resourceLongestLength <dbl>, resourceMeanLength <dbl>,
+#> #   consumerShortestLength <dbl>, consumerLongestLength <dbl>,
+#> #   consumerMeanLength <dbl>, resourceSizeMethod <chr>, …
+```
+
+``` r
+interactions <- get_interaction(foodwebID = 100)
+interactions
+#> # A tibble: 273 × 46
+#>   resourceAcceptedTaxonName consumerAcceptedTaxonName resourceLifeStage
+#>   <chr>                     <chr>                     <chr>            
+#> 1 benthic detritus          Rhinichthys atratulus     <NA>             
+#> 2 Arthrodesmus incus        Diaptomus minutus         <NA>             
+#> 3 Scenedesmus               Daphnia catawba           <NA>             
+#> 4 Tabellaria fenestrata     Holopedium gibberum       <NA>             
+#> # ℹ 269 more rows
+#> # ℹ 43 more variables: consumerLifeStage <chr>, resourceLowestMass <dbl>,
+#> #   resourceHighestMass <dbl>, resourceMeanMass <dbl>,
+#> #   consumerLowestMass <dbl>, consumerHighestMass <dbl>,
+#> #   consumerMeanMass <dbl>, resourceShortestLength <dbl>,
+#> #   resourceLongestLength <dbl>, resourceMeanLength <dbl>,
+#> #   consumerShortestLength <dbl>, consumerLongestLength <dbl>, …
 ```
 
 ## Access Static Tables
@@ -291,4 +343,85 @@ get_reference()
 #> 3           3 cattin blandenier (2004)                                          
 #> 4           4 cohen & mulder (2014) ecology 95; http://dx.doi.org/10.1890/13-13…
 #> # ℹ 31 more rows
+```
+
+# Database Coverage
+
+`coverage()` calculates the data coverage of the table, i.e. the
+fraction of entries that are not NA.
+
+``` r
+library(gatewayr)
+interactions <- get_interaction(foodwebID = 1)
+coverage(interactions)
+#> # A tibble: 46 × 2
+#>   column              coverage
+#>   <chr>                  <dbl>
+#> 1 resourceLowestMass         0
+#> 2 resourceHighestMass        0
+#> 3 consumerLowestMass         0
+#> 4 consumerHighestMass        0
+#> # ℹ 42 more rows
+```
+
+The coverage table is always arranged in increasing order of coverage.
+
+``` r
+coverage(get_foodweb())
+#> # A tibble: 12 × 2
+#>   column            coverage
+#>   <chr>                <dbl>
+#> 1 verbatimDepth       0.0744
+#> 2 verbatimElevation   0.214 
+#> 3 decimalLongitude    0.301 
+#> 4 decimalLatitude     0.827 
+#> # ℹ 8 more rows
+```
+
+``` r
+coverage(get_taxon())
+#> # A tibble: 5 × 2
+#>   column            coverage
+#>   <chr>                <dbl>
+#> 1 acceptedTaxonName     1.00
+#> 2 taxonRank             1.00
+#> 3 taxonomicStatus       1.00
+#> 4 vernacularName        1.00
+#> # ℹ 1 more row
+```
+
+``` r
+coverage(get_community())
+#> # A tibble: 6 × 2
+#>   column      coverage
+#>   <chr>          <dbl>
+#> 1 biomass       0     
+#> 2 meanLength    0.0292
+#> 3 meanMass      0.830 
+#> 4 foodwebName   1.00  
+#> # ℹ 2 more rows
+coverage(get_community(columns = "all"))
+#> # A tibble: 35 × 2
+#>   column         coverage
+#>   <chr>             <dbl>
+#> 1 lowestMass            0
+#> 2 highestMass           0
+#> 3 shortestLength        0
+#> 4 longestLength         0
+#> # ℹ 31 more rows
+```
+
+``` r
+library(gatewayr)
+interactions <- get_interaction()
+coverage_interactions <- coverage(interactions)
+coverage_interactions[coverage_interactions[["coverage"]] > 0, ]
+#> # A tibble: 36 × 2
+#>   column             coverage
+#>   <chr>                 <dbl>
+#> 1 resourceMeanLength   0.0681
+#> 2 consumerMeanLength   0.0689
+#> 3 verbatimElevation    0.120 
+#> 4 verbatimDepth        0.168 
+#> # ℹ 32 more rows
 ```
