@@ -34,8 +34,8 @@
 #' @export
 #' @importFrom methods is
 #' @importFrom httr2 request req_perform resp_body_json
-#' @importFrom dplyr pull select left_join relocate
-#' @importFrom dplyr contains join_by all_of mutate rename_with
+#' @importFrom dplyr pull select left_join relocate any_of all_of
+#' @importFrom dplyr contains join_by mutate rename_with
 #'
 #' @param df Table with raw community data.
 #'
@@ -44,6 +44,10 @@
   stopifnot(is(df, "data.frame"))
 
   # retrieve community info
+  drop <- c(
+    "communityID", "taxonID", "lifeStageID", "metabolicTypeID",
+    "movementTypeID", "sizeMethodID", "referenceID"
+  )
   resources <- df |>
     pull("foodwebID") |>
     unique() |>
@@ -53,7 +57,17 @@
       ~paste("resource", gsub("^([a-z])", "\\U\\1", ., perl = TRUE), sep = ""),
       .cols = "acceptedTaxonName":"reference"
     ) |>
-    select(-c("communityID", "taxonID":"referenceID"))
+    select(-any_of(drop))
+
+  drop <- c(
+    "communityID", "taxonID", "lifeStageID", "metabolicTypeID",
+    "movementTypeID", "sizeMethodID", "referenceID",
+    "foodwebName", "ecosystemType",
+    "decimalLongitude", "decimalLatitude",
+    "geographicLocation", "studySite",
+    "verbatimElevation", "verbatimDepth",
+    "samplingTime", "earliestDateCollected", "latestDateCollected"
+  )
 
   consumers <- df |>
     pull("foodwebID") |>
@@ -64,7 +78,7 @@
       ~paste("consumer", gsub("^([a-z])", "\\U\\1", ., perl = TRUE), sep = ""),
       .cols = "acceptedTaxonName":"reference"
     ) |>
-    select(-c("communityID", "taxonID":"latestDateCollected"))
+    select(-any_of(drop))
 
   ordered_columns <- c(
     "resourceAcceptedTaxonName", "consumerAcceptedTaxonName",
@@ -81,7 +95,8 @@
     "resourceTaxonomicStatus", "consumerTaxonomicStatus",
     "resourceVernacularName", "consumerVernacularName",
     "resourceReference", "consumerReference",
-    "interactionDimensionality", "basisOfRecord", "interactionRemarks",
+    "interactionDimensionality", "basisOfRecord",
+    "interactionMethod", "interactionType", "interactionRemarks",
     "foodwebName", "ecosystemType", "decimalLongitude", "decimalLatitude",
     "geographicLocation", "studySite",
     "verbatimElevation", "verbatimDepth",
@@ -99,8 +114,13 @@
       get_interaction_type(),
       by = "interactionTypeID"
     ) |>
-    select(-contains("ID")) |>
-    select(all_of(ordered_columns))
+    select(-contains("ID"))
+
+  missing_columns <- ordered_columns[which(!ordered_columns %in% colnames(ans))]
+  for (x in missing_columns) {
+    ans[[x]] <- NA
+  }
+  ans <- ans |> select(all_of(ordered_columns))
 
   return(ans)
 }
